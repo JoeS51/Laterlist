@@ -35,6 +35,17 @@ app.post('/link', async (c) => {
   return c.text("created", 201)
 });
 
+app.delete('/link/:id', async (c) => {
+  const id = c.req.param('id');
+
+  const result = await c.env.DB
+    .prepare(`DELETE FROM links where id = ?`)
+    .bind(id)
+    .run()
+
+  return c.text('deleted', 200)
+})
+
 app.get('/links', async (c) => {
   const result = await c.env.DB
     .prepare(`SELECT id, URL, created_at FROM links ORDER BY created_at DESC`)
