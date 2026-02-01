@@ -1,0 +1,328 @@
+---
+const appName = "Laterlist";
+---
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="icon" href="/favicon.ico" />
+    <meta name="viewport" content="width=device-width" />
+    <meta name="generator" content={Astro.generator} />
+    <title>{appName}</title>
+    <style>
+      :root {
+        color-scheme: light;
+        --aqua-1: #d9f4ff;
+        --aqua-2: #a9e4ff;
+        --aqua-3: #6bb8e9;
+        --aqua-4: #2a7bb8;
+        --sky: #e6f8ff;
+        --steel: #2c3b48;
+        --ink: #0b1b26;
+        --glass: rgba(255, 255, 255, 0.85);
+        --shadow: 0 18px 45px rgba(7, 28, 48, 0.28);
+        --soft-shadow: 0 8px 20px rgba(7, 28, 48, 0.2);
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        min-height: 100vh;
+        font-family: "Lucida Grande", "Lucida Sans Unicode", Geneva, Verdana, sans-serif;
+        color: var(--ink);
+        background: radial-gradient(circle at top, #f7fdff 0%, #c6eaff 45%, #7fbde6 100%);
+        display: grid;
+        place-items: center;
+      }
+
+      .backdrop {
+        position: absolute;
+        inset: 0;
+        background-image:
+          linear-gradient(120deg, rgba(255, 255, 255, 0.35), rgba(255, 255, 255, 0) 55%),
+          repeating-linear-gradient(0deg, rgba(255, 255, 255, 0.12), rgba(255, 255, 255, 0.12) 1px, transparent 1px, transparent 3px);
+        opacity: 0.6;
+        pointer-events: none;
+      }
+
+      .window {
+        position: relative;
+        width: min(940px, 92vw);
+        border-radius: 18px;
+        background: var(--glass);
+        box-shadow: var(--shadow);
+        border: 1px solid rgba(255, 255, 255, 0.6);
+        overflow: hidden;
+        backdrop-filter: blur(8px);
+      }
+
+      .titlebar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 12px 16px;
+        background: linear-gradient(180deg, #d8edff 0%, #9fd1f4 55%, #7db8e0 100%);
+        border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+      }
+
+      .traffic {
+        display: flex;
+        gap: 8px;
+      }
+
+      .traffic span {
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        display: inline-block;
+        box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.18);
+      }
+
+      .traffic .close {
+        background: #ff6c5f;
+      }
+
+      .traffic .min {
+        background: #ffd666;
+      }
+
+      .traffic .max {
+        background: #6ad87d;
+      }
+
+      .title {
+        font-size: 0.95rem;
+        font-weight: 600;
+        letter-spacing: 0.02em;
+        color: var(--steel);
+      }
+
+      .content {
+        display: grid;
+        grid-template-columns: minmax(0, 320px) minmax(0, 1fr);
+        gap: 24px;
+        padding: 24px;
+        background: linear-gradient(180deg, rgba(255, 255, 255, 0.6), rgba(240, 247, 255, 0.8));
+      }
+
+      .panel {
+        background: rgba(255, 255, 255, 0.9);
+        border-radius: 16px;
+        padding: 18px;
+        box-shadow: var(--soft-shadow);
+        border: 1px solid rgba(12, 48, 76, 0.08);
+      }
+
+      .panel h2 {
+        margin: 0 0 12px;
+        font-size: 1.1rem;
+        color: #16344b;
+      }
+
+      form {
+        display: grid;
+        gap: 12px;
+      }
+
+      label {
+        font-size: 0.82rem;
+        color: #2e4e63;
+      }
+
+      input[type="url"] {
+        padding: 10px 12px;
+        border-radius: 10px;
+        border: 1px solid rgba(27, 68, 100, 0.25);
+        background: linear-gradient(180deg, #fdfefe, #e8f3fb);
+        font-size: 0.95rem;
+        outline: none;
+      }
+
+      input[type="url"]:focus {
+        box-shadow: 0 0 0 2px rgba(102, 180, 234, 0.4);
+        border-color: rgba(34, 102, 153, 0.5);
+      }
+
+      .aqua-button {
+        border: none;
+        padding: 10px 14px;
+        border-radius: 12px;
+        font-weight: 600;
+        color: #05314d;
+        background: linear-gradient(180deg, #f3fdff 0%, #a3e3ff 45%, #5db0e6 100%);
+        box-shadow: inset 0 2px 0 rgba(255, 255, 255, 0.9), 0 6px 10px rgba(16, 74, 110, 0.25);
+        cursor: pointer;
+        transition: transform 0.1s ease, box-shadow 0.1s ease;
+      }
+
+      .aqua-button:active {
+        transform: translateY(1px);
+        box-shadow: inset 0 2px 0 rgba(255, 255, 255, 0.6), 0 4px 8px rgba(16, 74, 110, 0.2);
+      }
+
+      .status {
+        min-height: 20px;
+        font-size: 0.82rem;
+        color: #1d4a66;
+      }
+
+      .list {
+        display: grid;
+        gap: 12px;
+        max-height: 360px;
+        overflow: auto;
+        padding-right: 6px;
+      }
+
+      .card {
+        background: linear-gradient(180deg, #ffffff, #e8f3fb);
+        border-radius: 12px;
+        padding: 12px;
+        border: 1px solid rgba(27, 68, 100, 0.2);
+        display: grid;
+        gap: 6px;
+      }
+
+      .card a {
+        color: #0f5f96;
+        text-decoration: none;
+        word-break: break-all;
+      }
+
+      .card a:hover {
+        text-decoration: underline;
+      }
+
+      .meta {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-size: 0.78rem;
+        color: #476377;
+      }
+
+      .ghost {
+        border: 1px solid rgba(27, 68, 100, 0.25);
+        background: linear-gradient(180deg, #f3f9fd, #d8ecf9);
+        color: #22506b;
+        padding: 6px 10px;
+        border-radius: 10px;
+        cursor: pointer;
+      }
+
+      .empty {
+        color: #2f5a76;
+        font-style: italic;
+      }
+
+      @media (max-width: 820px) {
+        .content {
+          grid-template-columns: 1fr;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="backdrop" aria-hidden="true"></div>
+    <main class="window">
+      <div class="titlebar">
+        <div class="traffic">
+          <span class="close"></span>
+          <span class="min"></span>
+          <span class="max"></span>
+        </div>
+        <div class="title">{appName} Library</div>
+        <div aria-hidden="true"></div>
+      </div>
+      <div class="content">
+        <section class="panel">
+          <h2>Add a link</h2>
+          <form id="link-form">
+            <label for="url">URL</label>
+            <input id="url" name="url" type="url" placeholder="https://example.com" required />
+            <button class="aqua-button" type="submit">Save Link</button>
+          </form>
+          <div class="status" id="status"></div>
+        </section>
+        <section class="panel">
+          <h2>Saved links</h2>
+          <div class="list" id="link-list">
+            <div class="empty">Loading your stash...</div>
+          </div>
+        </section>
+      </div>
+    </main>
+
+    <script type="module">
+      const list = document.querySelector("#link-list");
+      const form = document.querySelector("#link-form");
+      const status = document.querySelector("#status");
+
+      const renderLinks = (items) => {
+        if (!items.length) {
+          list.innerHTML = '<div class="empty">No links yet. Add your first.</div>';
+          return;
+        }
+        list.innerHTML = items
+          .map((item) => {
+            const url = item.url ?? item.URL ?? "";
+            const created = item.created_at
+              ? new Date(item.created_at).toLocaleString()
+              : "";
+            return `
+              <article class="card">
+                <a href="${url}" target="_blank" rel="noreferrer">${url}</a>
+                <div class="meta">
+                  <span>${created}</span>
+                  <button class="ghost" data-id="${item.id}">Delete</button>
+                </div>
+              </article>
+            `;
+          })
+          .join("");
+      };
+
+      const loadLinks = async () => {
+        const response = await fetch("http://localhost:8787/links");
+        const data = await response.json();
+        renderLinks(Array.isArray(data) ? data : []);
+      };
+
+      form.addEventListener("submit", async (event) => {
+        event.preventDefault();
+        status.textContent = "Saving...";
+        const url = new FormData(form).get("url");
+
+        const response = await fetch("/link", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ url }),
+        });
+
+        if (!response.ok) {
+          const error = await response.json();
+          status.textContent = error?.error ? "Invalid URL" : "Could not save";
+          return;
+        }
+
+        form.reset();
+        status.textContent = "Saved.";
+        await loadLinks();
+      });
+
+      list.addEventListener("click", async (event) => {
+        const button = event.target.closest("button[data-id]");
+        if (!button) return;
+        const id = button.dataset.id;
+        await fetch(`/link/${id}`, { method: "DELETE" });
+        await loadLinks();
+      });
+
+      loadLinks();
+    </script>
+  </body>
+</html>

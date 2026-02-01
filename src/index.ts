@@ -1,4 +1,5 @@
 import { Hono } from 'hono'
+import { cors } from 'hono/cors'
 import { z } from 'zod'
 
 type Env = {
@@ -6,6 +7,15 @@ type Env = {
 }
 
 const app = new Hono<{ Bindings: Env }>()
+
+app.use(
+  '*',
+  cors({
+    origin: 'http://localhost:4321',
+    allowMethods: ['GET', 'POST', 'DELETE', 'OPTIONS'],
+    allowHeaders: ['Content-Type'],
+  })
+)
 
 
 const links: string[] = [];
@@ -53,5 +63,9 @@ app.get('/links', async (c) => {
 
   return c.json(result.results)
 });
+
+app.get('/*', (c) => {
+  return c.text('Invalid endpoint', 404)
+})
 
 export default app
