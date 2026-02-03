@@ -32,7 +32,7 @@ app.post('/link', async (c) => {
   const raw = await c.req.json()
   const parsed = CreateLinkSchema.safeParse(raw);
   if (!parsed.success) {
-    return c.json({ error: parsed.error.flatten() }, 400);
+    return c.json({ error: parsed.error }, 400);
   }
 
   await c.env.DB.prepare(
@@ -68,4 +68,4 @@ app.get('/*', (c) => {
   return c.text('Invalid endpoint', 404)
 })
 
-export default app
+export default app;

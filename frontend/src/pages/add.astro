@@ -1,0 +1,136 @@
+---
+const appName = "Laterlist";
+---
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="icon" href="/favicon.ico" />
+    <meta name="viewport" content="width=device-width" />
+    <meta name="generator" content={Astro.generator} />
+    <title>{appName} - Add</title>
+    <style>
+      :root {
+        color-scheme: light;
+        --ink: #111;
+        --muted: #555;
+        --link: #0000ee;
+        --border: #c7c7c7;
+      }
+
+      body {
+        margin: 0;
+        background: #fff;
+        font-family: "Times New Roman", Times, serif;
+        color: var(--ink);
+      }
+
+      main {
+        max-width: 760px;
+        margin: 28px auto 60px;
+        padding: 0 18px;
+      }
+
+      header {
+        display: flex;
+        align-items: baseline;
+        justify-content: space-between;
+        border-bottom: 1px solid var(--border);
+        padding-bottom: 10px;
+      }
+
+      h1 {
+        margin: 0;
+        font-size: 28px;
+      }
+
+      nav a {
+        color: var(--link);
+        text-decoration: none;
+        margin-left: 12px;
+      }
+
+      nav a:hover {
+        text-decoration: underline;
+      }
+
+      form {
+        margin-top: 18px;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        align-items: baseline;
+      }
+
+      label {
+        font-weight: 700;
+      }
+
+      input[type="url"] {
+        flex: 1;
+        min-width: 240px;
+        padding: 3px 5px;
+        border: 1px solid var(--border);
+      }
+
+      button {
+        border: 1px solid var(--border);
+        background: #f2f2f2;
+        padding: 3px 10px;
+        cursor: pointer;
+        font-size: 13px;
+      }
+
+      .status {
+        margin-top: 8px;
+        min-height: 18px;
+        color: var(--muted);
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <header>
+        <h1>{appName}</h1>
+        <nav>
+          <a href="/">All links</a>
+        </nav>
+      </header>
+
+      <form id="link-form">
+        <label for="url">URL</label>
+        <input id="url" name="url" type="url" placeholder="https://example.com" required />
+        <button type="submit">Add</button>
+      </form>
+      <div class="status" id="status"></div>
+    </main>
+
+    <script type="module">
+      const form = document.querySelector("#link-form");
+      const status = document.querySelector("#status");
+      const apiBase = "http://localhost:8787";
+
+      form.addEventListener("submit", async (event) => {
+        event.preventDefault();
+        status.textContent = "Saving...";
+        const url = new FormData(form).get("url");
+
+        const response = await fetch(`${apiBase}/link`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ url }),
+        });
+
+        if (!response.ok) {
+          const error = await response.json();
+          status.textContent = error?.error ? "Invalid URL" : "Could not save";
+          return;
+        }
+
+        status.textContent = "Saved.";
+        window.location.href = "/";
+      });
+    </script>
+  </body>
+</html>
