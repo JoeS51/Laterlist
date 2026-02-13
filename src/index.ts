@@ -22,6 +22,7 @@ const links: string[] = [];
 
 const CreateLinkSchema = z.object({
   url: z.string().url(),
+  title: z.string()
 })
 
 app.get('/', (c) => {
@@ -36,10 +37,10 @@ app.post('/link', async (c) => {
   }
 
   await c.env.DB.prepare(
-    `INSERT INTO links (id, url, created_at)
-     VALUES (?, ?, ?)`
+    `INSERT INTO links (id, url, title, created_at)
+     VALUES (?, ?, ?, ?)`
   )
-    .bind(crypto.randomUUID(), parsed.data.url, Date.now())
+    .bind(crypto.randomUUID(), parsed.data.url, parsed.data.title, Date.now())
     .run()
 
   return c.text("created", 201)
@@ -58,7 +59,7 @@ app.delete('/link/:id', async (c) => {
 
 app.get('/links', async (c) => {
   const result = await c.env.DB
-    .prepare(`SELECT id, URL, created_at FROM links ORDER BY created_at DESC`)
+    .prepare(`SELECT id, URL, title, created_at FROM links ORDER BY created_at DESC`)
     .all()
 
   return c.json(result.results)
