@@ -10,7 +10,7 @@ const appName = "Joe's Reading List";
     <meta name="viewport" content="width=device-width" />
     <meta name="generator" content={Astro.generator} />
     <title>{appName}</title>
-    <style>
+    <style is:global>
       :root {
         color-scheme: light;
         --ink: #111;
@@ -61,9 +61,16 @@ const appName = "Joe's Reading List";
         margin: 18px 0 0;
       }
 
-      li {
-        padding: 10px 0;
-        border-bottom: 1px dotted var(--border);
+      #link-list li {
+        padding: 12px 0 18px;
+        margin-bottom: 16px;
+        border-bottom: 1px solid #cfcfcf;
+        box-shadow: inset 0 -2px 0 #f0f0f0;
+      }
+
+      .title {
+        font-weight: 700;
+        margin-bottom: 6px;
       }
 
       a {
@@ -82,6 +89,7 @@ const appName = "Joe's Reading List";
         gap: 10px;
         align-items: baseline;
         flex-wrap: wrap;
+        margin-bottom: 6px;
       }
 
       button {
@@ -119,11 +127,14 @@ const appName = "Joe's Reading List";
         list.innerHTML = items
           .map((item) => {
             const url = item.url ?? item.URL ?? "";
+            const title = item.title ?? "";
             const created = item.created_at
               ? new Date(item.created_at).toLocaleString()
               : "";
+            const titleMarkup = title ? `<div class="title">${title}</div>` : "";
             return `
               <li>
+                ${titleMarkup}
                 <div class="row">
                   <a href="${url}" target="_blank" rel="noreferrer">${url}</a>
                   <button data-id="${item.id}">Delete</button>

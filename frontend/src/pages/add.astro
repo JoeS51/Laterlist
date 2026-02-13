@@ -67,7 +67,8 @@ const appName = "Laterlist";
         font-weight: 700;
       }
 
-      input[type="url"] {
+      input[type="url"],
+      input[type="text"] {
         flex: 1;
         min-width: 240px;
         padding: 3px 5px;
@@ -99,6 +100,8 @@ const appName = "Laterlist";
       </header>
 
       <form id="link-form">
+        <label for="title">Title</label>
+        <input id="title" name="title" type="text" placeholder="A clear title" required />
         <label for="url">URL</label>
         <input id="url" name="url" type="url" placeholder="https://example.com" required />
         <button type="submit">Add</button>
@@ -114,12 +117,19 @@ const appName = "Laterlist";
       form.addEventListener("submit", async (event) => {
         event.preventDefault();
         status.textContent = "Saving...";
-        const url = new FormData(form).get("url");
+        const formData = new FormData(form);
+        const url = formData.get("url");
+        const title = String(formData.get("title") ?? "").trim();
+
+        if (!title) {
+          status.textContent = "Title is required.";
+          return;
+        }
 
         const response = await fetch(`${apiBase}/link`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ url }),
+          body: JSON.stringify({ url, title }),
         });
 
         if (!response.ok) {
