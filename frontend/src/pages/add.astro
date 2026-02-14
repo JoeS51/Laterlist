@@ -1,5 +1,6 @@
 ---
 const appName = "Laterlist";
+const apiBase = import.meta.env.PUBLIC_API_BASE_URL ?? "http://localhost:8787";
 ---
 
 <html lang="en">
@@ -109,10 +110,9 @@ const appName = "Laterlist";
       <div class="status" id="status"></div>
     </main>
 
-    <script type="module">
+    <script type="module" define:vars={{ apiBase }}>
       const form = document.querySelector("#link-form");
       const status = document.querySelector("#status");
-      const apiBase = "http://localhost:8787";
 
       form.addEventListener("submit", async (event) => {
         event.preventDefault();
