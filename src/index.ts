@@ -11,7 +11,7 @@ const app = new Hono<{ Bindings: Env }>()
 app.use(
   '*',
   cors({
-    origin: 'http://localhost:4321',
+    origin: ['http://localhost:4321', 'https://joe-list.vercel.app'],
     allowMethods: ['GET', 'POST', 'DELETE', 'OPTIONS'],
     allowHeaders: ['Content-Type'],
   })
