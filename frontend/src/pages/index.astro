@@ -38,16 +38,20 @@ const apiBase = import.meta.env.PUBLIC_API_BASE_URL ?? "http://localhost:8787";
 
       header {
         display: flex;
-        align-items: baseline;
-        justify-content: space-between;
-        gap: 12px;
-        flex-wrap: wrap;
+        flex-direction: column;
+        gap: 4px;
       }
 
       h1 {
         margin: 0;
         font-size: 26px;
         font-weight: 500;
+      }
+
+      .subtitle {
+        color: #9ca3af;
+        font-size: 0.75rem;
+        max-width: 40ch;
       }
 
       ul {
@@ -95,18 +99,60 @@ const apiBase = import.meta.env.PUBLIC_API_BASE_URL ?? "http://localhost:8787";
         font-size: 0.85rem;
         margin-top: 2px;
       }
+
+      footer {
+        position: fixed;
+        right: 24px;
+        bottom: 20px;
+        font-size: 0.75rem;
+        color: var(--muted);
+      }
+
+      footer a {
+        color: var(--muted);
+        text-decoration: none;
+        margin-right: 10px;
+      }
+
+      footer a:last-child {
+        margin-right: 0;
+      }
+
+      .footer-inner {
+        white-space: nowrap;
+      }
+
+      .footer-note {
+        color: var(--muted);
+      }
+
+      footer a:hover {
+        color: var(--link-hover);
+        text-decoration: underline;
+      }
     </style>
   </head>
   <body>
     <main>
       <header>
         <h1>{appName}</h1>
+        <div class="subtitle">
+          Technical articles I’ve read and liked.
+        </div>
       </header>
 
       <ul id="link-list">
         <li>Loading...</li>
       </ul>
     </main>
+
+    <footer>
+      <div class="footer-inner">
+        <span class="footer-note">
+          my own articles are <a href="https://www.joesluis.com/blog" target="_blank" rel="noreferrer">here :)</a>
+        </span>
+      </div>
+    </footer>
 
     <script type="module" define:vars={{ apiBase }}>
       const list = document.querySelector("#link-list");
