@@ -28,10 +28,6 @@ const CreateLinkSchema = z.object({
   title: z.string()
 })
 
-const CreateLoginSchema = z.object({
-  password: z.string()
-})
-
 const adminAuth = basicAuth({
   verifyUser: (username, password, c) => {
     return username === c.env.ADMIN_USER && password === c.env.ADMIN_PASSWORD
@@ -78,19 +74,8 @@ app.get('/links', async (c) => {
   return c.json(result.results)
 });
 
-app.post('/login', async (c) => {
-  const raw = await c.req.json();
-  const parsed = CreateLoginSchema.safeParse(raw);
-  if (!parsed.success) {
-    return c.json({ error: parsed.error }, 400);
-  }
-
-  console.log(c.env.ADMIN_PASSWORD);
-  if (parsed.data.password !== c.env.ADMIN_PASSWORD) {
-    return c.text("??", 401);
-  }
-
-  return c.text("good job", 200);
+app.get('/admin/check', adminAuth, (c) => {
+  return c.text('ok', 200)
 })
 
 app.get('/*', (c) => {

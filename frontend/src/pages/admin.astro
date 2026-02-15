@@ -276,12 +276,23 @@ const apiBase = import.meta.env.PUBLIC_API_BASE_URL ?? "http://localhost:8787";
       };
 
       const setupHandlers = () => {
-        signInButton.addEventListener("click", () => {
+        signInButton.addEventListener("click", async () => {
           const password = String(passwordInput.value || "").trim();
           if (!password) {
             authStatus.textContent = "Password required.";
             return;
           }
+          const authHeader = `Basic ${btoa(`${adminUser}:${password}`)}`;
+          const response = await fetch(`${apiBase}/admin/check`, {
+            method: "GET",
+            headers: { Authorization: authHeader },
+          });
+
+          if (!response.ok) {
+            authStatus.textContent = "Invalid password.";
+            return;
+          }
+
           setPassword(password);
           passwordInput.value = "";
           setAuthUi(true);
