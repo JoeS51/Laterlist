@@ -1,0 +1,359 @@
+---
+const appName = "Laterlist Admin";
+const apiBase = import.meta.env.PUBLIC_API_BASE_URL ?? "http://localhost:8787";
+---
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="icon" href="/favicon.ico" />
+    <meta name="viewport" content="width=device-width" />
+    <meta name="generator" content={Astro.generator} />
+    <title>{appName}</title>
+    <style is:global>
+      @import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap");
+
+      :root {
+        color-scheme: light;
+        --ink: #1f2937;
+        --muted: #6b7280;
+        --link: #3b82f6;
+        --link-hover: #1d4ed8;
+        --border: #c7c7c7;
+      }
+
+      body {
+        margin: 0;
+        background: #fff;
+        font-family: "Inter", system-ui, -apple-system, sans-serif;
+        color: var(--ink);
+        letter-spacing: -0.01em;
+      }
+
+      main {
+        max-width: 60ch;
+        margin: 0 auto;
+        padding: 48px 32px 60px;
+      }
+
+      header {
+        display: flex;
+        align-items: baseline;
+        justify-content: space-between;
+        gap: 12px;
+        flex-wrap: wrap;
+      }
+
+      h1 {
+        margin: 0;
+        font-size: 26px;
+        font-weight: 500;
+      }
+
+      .note {
+        font-size: 0.9rem;
+        color: var(--muted);
+      }
+
+      .auth {
+        margin: 16px 0 12px;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        align-items: baseline;
+      }
+
+      .auth input[type="password"] {
+        min-width: 240px;
+        padding: 3px 5px;
+        border: 1px solid var(--border);
+      }
+
+      .auth button {
+        border: 1px solid var(--border);
+        background: #f2f2f2;
+        padding: 3px 10px;
+        cursor: pointer;
+        font-size: 13px;
+      }
+
+      form {
+        margin-top: 12px;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        align-items: baseline;
+      }
+
+      label {
+        font-weight: 600;
+      }
+
+      input[type="url"],
+      input[type="text"] {
+        flex: 1;
+        min-width: 240px;
+        padding: 3px 5px;
+        border: 1px solid var(--border);
+      }
+
+      .status {
+        margin-top: 8px;
+        min-height: 18px;
+        color: var(--muted);
+      }
+
+      #link-list {
+        list-style: none;
+        padding-left: 16px;
+        margin: 18px 0 0;
+        border-left: 1px solid #d1d5db;
+      }
+
+      #link-list li {
+        margin: 6px 0;
+        padding-left: 18px;
+        position: relative;
+      }
+
+      #link-list li::before {
+        content: ">";
+        position: absolute;
+        left: -2px;
+        color: var(--muted);
+      }
+
+      .title {
+        font-weight: 500;
+      }
+
+      a {
+        color: var(--link);
+        text-decoration: none;
+      }
+
+      a:hover {
+        color: var(--link-hover);
+        text-decoration: underline;
+      }
+
+      .url {
+        color: var(--muted);
+        font-size: 0.9rem;
+        line-height: 1.35;
+      }
+
+      .meta {
+        color: var(--muted);
+        font-size: 0.85rem;
+        margin-top: 2px;
+      }
+
+      .row {
+        display: flex;
+        justify-content: space-between;
+        gap: 10px;
+        align-items: baseline;
+        flex-wrap: wrap;
+      }
+
+      .row button {
+        border: 1px solid var(--border);
+        background: #f2f2f2;
+        padding: 2px 8px;
+        cursor: pointer;
+        font-size: 12px;
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <header>
+        <h1>{appName}</h1>
+        <div class="note">Access protected</div>
+      </header>
+
+      <section class="auth">
+        <div id="auth-status" class="note">Enter admin password to manage links.</div>
+        <input
+          id="admin-password"
+          type="password"
+          placeholder="Admin password"
+          autocomplete="current-password"
+        />
+        <button type="button" id="sign-in">Sign in</button>
+        <button type="button" id="sign-out" hidden>Sign out</button>
+      </section>
+
+      <section id="admin-ui" hidden>
+        <form id="link-form">
+          <label for="title">Title</label>
+          <input id="title" name="title" type="text" placeholder="A clear title" required />
+          <label for="url">URL</label>
+          <input id="url" name="url" type="url" placeholder="https://example.com" required />
+          <button type="submit">Add</button>
+        </form>
+        <div class="status" id="status"></div>
+
+        <ul id="link-list">
+          <li>Loading...</li>
+        </ul>
+      </section>
+    </main>
+
+    <script
+      type="module"
+      define:vars={{ apiBase }}
+    >
+      const authStatus = document.querySelector("#auth-status");
+      const passwordInput = document.querySelector("#admin-password");
+      const signInButton = document.querySelector("#sign-in");
+      const signOutButton = document.querySelector("#sign-out");
+      const adminUi = document.querySelector("#admin-ui");
+      const list = document.querySelector("#link-list");
+      const form = document.querySelector("#link-form");
+      const status = document.querySelector("#status");
+
+      const adminUser = "user";
+      const storageKey = "laterlist_admin_password";
+
+      const setAuthUi = (hasPassword) => {
+        if (hasPassword) {
+          authStatus.textContent = "Admin mode unlocked.";
+          signOutButton.hidden = false;
+          adminUi.hidden = false;
+        } else {
+          authStatus.textContent = "Enter admin password to manage links.";
+          signOutButton.hidden = true;
+          adminUi.hidden = true;
+        }
+      };
+
+      const getPassword = () => sessionStorage.getItem(storageKey) || "";
+      const setPassword = (value) => sessionStorage.setItem(storageKey, value);
+      const clearPassword = () => sessionStorage.removeItem(storageKey);
+      const getAuthHeader = () => {
+        const password = getPassword();
+        if (!password) return "";
+        return `Basic ${btoa(`${adminUser}:${password}`)}`;
+      };
+
+      const renderLinks = (items) => {
+        if (!items.length) {
+          list.innerHTML = "<li>No links yet.</li>";
+          return;
+        }
+        list.innerHTML = items
+          .map((item) => {
+            const url = item.url ?? item.URL ?? "";
+            const title = item.title ?? "";
+            const created = item.created_at
+              ? new Date(item.created_at).toLocaleString()
+              : "";
+            const displayTitle = title || url;
+            const urlMarkup = title ? `<div class="url">${url}</div>` : "";
+            return `
+              <li>
+                <div class="row">
+                  <div class="title">
+                    <a href="${url}" target="_blank" rel="noreferrer">${displayTitle}</a>
+                  </div>
+                  <button data-id="${item.id}">Delete</button>
+                </div>
+                ${urlMarkup}
+                <div class="meta">${created}</div>
+              </li>
+            `;
+          })
+          .join("");
+      };
+
+      const loadLinks = async () => {
+        const response = await fetch(`${apiBase}/links`);
+        const data = await response.json();
+        renderLinks(Array.isArray(data) ? data : []);
+      };
+
+      const setupHandlers = () => {
+        signInButton.addEventListener("click", () => {
+          const password = String(passwordInput.value || "").trim();
+          if (!password) {
+            authStatus.textContent = "Password required.";
+            return;
+          }
+          setPassword(password);
+          passwordInput.value = "";
+          setAuthUi(true);
+        });
+
+        signOutButton.addEventListener("click", () => {
+          clearPassword();
+          setAuthUi(false);
+        });
+
+        form.addEventListener("submit", async (event) => {
+          event.preventDefault();
+          status.textContent = "Saving...";
+          const formData = new FormData(form);
+          const url = formData.get("url");
+          const title = String(formData.get("title") ?? "").trim();
+
+          if (!title) {
+            status.textContent = "Title is required.";
+            return;
+          }
+
+          const authHeader = getAuthHeader();
+          if (!authHeader) {
+            status.textContent = "Admin password required.";
+            return;
+          }
+
+          const response = await fetch(`${apiBase}/link`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: authHeader,
+            },
+            body: JSON.stringify({ url, title }),
+          });
+
+          if (!response.ok) {
+            status.textContent = "Could not save.";
+            return;
+          }
+
+          status.textContent = "Saved.";
+          form.reset();
+          await loadLinks();
+        });
+
+        list.addEventListener("click", async (event) => {
+          const button = event.target.closest("button[data-id]");
+          if (!button) return;
+          const authHeader = getAuthHeader();
+          if (!authHeader) {
+            status.textContent = "Admin password required.";
+            return;
+          }
+
+          const id = button.dataset.id;
+          await fetch(`${apiBase}/link/${id}`, {
+            method: "DELETE",
+            headers: { Authorization: authHeader },
+          });
+          await loadLinks();
+        });
+      };
+
+      const init = async () => {
+        setAuthUi(Boolean(getPassword()));
+        setupHandlers();
+        await loadLinks();
+      };
+
+      init();
+    </script>
+  </body>
+</html>

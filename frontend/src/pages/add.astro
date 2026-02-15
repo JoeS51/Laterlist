@@ -1,6 +1,5 @@
 ---
 const appName = "Laterlist";
-const apiBase = import.meta.env.PUBLIC_API_BASE_URL ?? "http://localhost:8787";
 ---
 
 <html lang="en">
@@ -10,7 +9,8 @@ const apiBase = import.meta.env.PUBLIC_API_BASE_URL ?? "http://localhost:8787";
     <link rel="icon" href="/favicon.ico" />
     <meta name="viewport" content="width=device-width" />
     <meta name="generator" content={Astro.generator} />
-    <title>{appName} - Add</title>
+    <meta http-equiv="refresh" content="0; url=/admin" />
+    <title>{appName} - Admin</title>
     <style>
       :root {
         color-scheme: light;
@@ -33,114 +33,14 @@ const apiBase = import.meta.env.PUBLIC_API_BASE_URL ?? "http://localhost:8787";
         padding: 0 18px;
       }
 
-      header {
-        display: flex;
-        align-items: baseline;
-        justify-content: space-between;
-        border-bottom: 1px solid var(--border);
-        padding-bottom: 10px;
-      }
-
-      h1 {
-        margin: 0;
-        font-size: 28px;
-      }
-
-      nav a {
+      a {
         color: var(--link);
-        text-decoration: none;
-        margin-left: 12px;
-      }
-
-      nav a:hover {
-        text-decoration: underline;
-      }
-
-      form {
-        margin-top: 18px;
-        display: flex;
-        flex-wrap: wrap;
-        gap: 10px;
-        align-items: baseline;
-      }
-
-      label {
-        font-weight: 700;
-      }
-
-      input[type="url"],
-      input[type="text"] {
-        flex: 1;
-        min-width: 240px;
-        padding: 3px 5px;
-        border: 1px solid var(--border);
-      }
-
-      button {
-        border: 1px solid var(--border);
-        background: #f2f2f2;
-        padding: 3px 10px;
-        cursor: pointer;
-        font-size: 13px;
-      }
-
-      .status {
-        margin-top: 8px;
-        min-height: 18px;
-        color: var(--muted);
       }
     </style>
   </head>
   <body>
     <main>
-      <header>
-        <h1>{appName}</h1>
-        <nav>
-          <a href="/">All links</a>
-        </nav>
-      </header>
-
-      <form id="link-form">
-        <label for="title">Title</label>
-        <input id="title" name="title" type="text" placeholder="A clear title" required />
-        <label for="url">URL</label>
-        <input id="url" name="url" type="url" placeholder="https://example.com" required />
-        <button type="submit">Add</button>
-      </form>
-      <div class="status" id="status"></div>
+      <p>This page moved to <a href="/admin">/admin</a>.</p>
     </main>
-
-    <script type="module" define:vars={{ apiBase }}>
-      const form = document.querySelector("#link-form");
-      const status = document.querySelector("#status");
-
-      form.addEventListener("submit", async (event) => {
-        event.preventDefault();
-        status.textContent = "Saving...";
-        const formData = new FormData(form);
-        const url = formData.get("url");
-        const title = String(formData.get("title") ?? "").trim();
-
-        if (!title) {
-          status.textContent = "Title is required.";
-          return;
-        }
-
-        const response = await fetch(`${apiBase}/link`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ url, title }),
-        });
-
-        if (!response.ok) {
-          const error = await response.json();
-          status.textContent = error?.error ? "Invalid URL" : "Could not save";
-          return;
-        }
-
-        status.textContent = "Saved.";
-        window.location.href = "/";
-      });
-    </script>
   </body>
 </html>

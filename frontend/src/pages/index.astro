@@ -1,6 +1,6 @@
 ---
 const appName = "Joe's Reading List";
-const apiBase = import.meta.env.PUBLIC_API_BASE_URL;
+const apiBase = import.meta.env.PUBLIC_API_BASE_URL ?? "http://localhost:8787";
 ---
 
 <html lang="en">
@@ -12,95 +12,88 @@ const apiBase = import.meta.env.PUBLIC_API_BASE_URL;
     <meta name="generator" content={Astro.generator} />
     <title>{appName}</title>
     <style is:global>
+      @import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap");
+
       :root {
         color-scheme: light;
-        --ink: #111;
-        --muted: #555;
-        --link: #0000ee;
-        --border: #c7c7c7;
-        --divider: #cfcfcf;
-        --divider-soft: #f0f0f0;
+        --ink: #1f2937;
+        --muted: #6b7280;
+        --link: #3b82f6;
+        --link-hover: #1d4ed8;
       }
 
       body {
         margin: 0;
         background: #fff;
-        font-family: "Times New Roman", Times, serif;
+        font-family: "Inter", system-ui, -apple-system, sans-serif;
         color: var(--ink);
+        letter-spacing: -0.01em;
       }
 
       main {
-        max-width: 760px;
-        margin: 28px auto 60px;
-        padding: 0 18px;
+        max-width: 60ch;
+        margin: 0 auto;
+        padding: 48px 32px 60px;
       }
 
       header {
         display: flex;
         align-items: baseline;
         justify-content: space-between;
-        border-bottom: 1px solid var(--border);
-        padding-bottom: 10px;
+        gap: 12px;
+        flex-wrap: wrap;
       }
 
       h1 {
         margin: 0;
-        font-size: 28px;
-      }
-
-      nav a {
-        color: var(--link);
-        text-decoration: none;
-        margin-left: 12px;
-      }
-
-      nav a:hover {
-        text-decoration: underline;
+        font-size: 26px;
+        font-weight: 500;
       }
 
       ul {
         list-style: none;
-        padding: 0;
-        margin: 18px 0 0;
+        padding-left: 16px;
+        margin: 20px 0 0;
+        border-left: 1px solid #d1d5db;
       }
 
       #link-list li {
-        padding: 12px 0 18px;
-        margin-bottom: 16px;
-        border-bottom: 1px solid var(--divider);
-        box-shadow: inset 0 -2px 0 var(--divider-soft);
+        margin: 6px 0;
+        padding-left: 18px;
+        position: relative;
+      }
+
+      #link-list li::before {
+        content: ">";
+        position: absolute;
+        left: -2px;
+        color: var(--muted);
       }
 
       .title {
-        font-weight: 700;
-        margin-bottom: 6px;
+        font-weight: 500;
       }
 
       a {
         color: var(--link);
+        text-decoration: none;
+      }
+
+      a:hover {
+        color: var(--link-hover);
+        text-decoration: underline;
+      }
+
+      .url {
+        color: var(--muted);
+        font-size: 0.9rem;
+        line-height: 1.35;
       }
 
       .meta {
         color: var(--muted);
-        font-size: 12px;
-        margin-top: 6px;
-      }
-
-      .row {
-        display: flex;
-        justify-content: space-between;
-        gap: 10px;
-        align-items: baseline;
-        flex-wrap: wrap;
-        margin-bottom: 6px;
-      }
-
-      button {
-        border: 1px solid var(--border);
-        background: #f2f2f2;
-        padding: 2px 8px;
-        cursor: pointer;
-        font-size: 13px;
+        font-size: 0.85rem;
+        margin-top: 2px;
       }
     </style>
   </head>
@@ -108,9 +101,6 @@ const apiBase = import.meta.env.PUBLIC_API_BASE_URL;
     <main>
       <header>
         <h1>{appName}</h1>
-        <nav>
-          <a href="/add">Add link</a>
-        </nav>
       </header>
 
       <ul id="link-list">
@@ -133,14 +123,14 @@ const apiBase = import.meta.env.PUBLIC_API_BASE_URL;
             const created = item.created_at
               ? new Date(item.created_at).toLocaleString()
               : "";
-            const titleMarkup = title ? `<div class="title">${title}</div>` : "";
+            const displayTitle = title || url;
+            const urlMarkup = title ? `<div class="url">${url}</div>` : "";
             return `
               <li>
-                ${titleMarkup}
-                <div class="row">
-                  <a href="${url}" target="_blank" rel="noreferrer">${url}</a>
-                  <button data-id="${item.id}">Delete</button>
+                <div class="title">
+                  <a href="${url}" target="_blank" rel="noreferrer">${displayTitle}</a>
                 </div>
+                ${urlMarkup}
                 <div class="meta">${created}</div>
               </li>
             `;
@@ -153,14 +143,6 @@ const apiBase = import.meta.env.PUBLIC_API_BASE_URL;
         const data = await response.json();
         renderLinks(Array.isArray(data) ? data : []);
       };
-
-      list.addEventListener("click", async (event) => {
-        const button = event.target.closest("button[data-id]");
-        if (!button) return;
-        const id = button.dataset.id;
-        await fetch(`${apiBase}/link/${id}`, { method: "DELETE" });
-        await loadLinks();
-      });
 
       loadLinks();
     </script>
