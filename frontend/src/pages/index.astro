@@ -43,6 +43,7 @@ const apiBase = import.meta.env.PUBLIC_API_BASE_URL ?? "http://localhost:8787";
         max-width: 60ch;
         margin: 0 auto;
         padding: 48px 32px 60px;
+        position: relative;
       }
 
       header {
@@ -139,6 +140,21 @@ const apiBase = import.meta.env.PUBLIC_API_BASE_URL ?? "http://localhost:8787";
         color: var(--link-hover);
         text-decoration: underline;
       }
+
+      @media (max-width: 640px) {
+        footer {
+          position: absolute;
+          top: 12px;
+          right: 12px;
+          bottom: auto;
+          margin-top: 0;
+          text-align: right;
+        }
+
+        header {
+          padding-top: 18px;
+        }
+      }
     </style>
   </head>
   <body>
@@ -150,18 +166,18 @@ const apiBase = import.meta.env.PUBLIC_API_BASE_URL ?? "http://localhost:8787";
         </div>
       </header>
 
+      <footer>
+        <div class="footer-inner">
+          <span class="footer-note">
+            my own articles are <a href="https://www.joesluis.com/blog" target="_blank" rel="noreferrer">here :)</a>
+          </span>
+        </div>
+      </footer>
+
       <ul id="link-list">
         <li>Loading...</li>
       </ul>
     </main>
-
-    <footer>
-      <div class="footer-inner">
-        <span class="footer-note">
-          my own articles are <a href="https://www.joesluis.com/blog" target="_blank" rel="noreferrer">here :)</a>
-        </span>
-      </div>
-    </footer>
 
     <script type="module" define:vars={{ apiBase }}>
       const list = document.querySelector("#link-list");
