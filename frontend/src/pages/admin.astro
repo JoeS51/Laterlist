@@ -12,120 +12,260 @@ const apiBase = import.meta.env.PUBLIC_API_BASE_URL ?? "http://localhost:8787";
     <meta name="generator" content={Astro.generator} />
     <title>{appName}</title>
     <style is:global>
-      @import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap");
+      @import url("https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&family=Newsreader:opsz,wght@6..72,500&display=swap");
 
       :root {
         color-scheme: light;
-        --ink: #1f2937;
-        --muted: #6b7280;
-        --link: #3b82f6;
-        --link-hover: #1d4ed8;
-        --border: #c7c7c7;
+        --bg: #f3f1ec;
+        --surface: rgba(255, 255, 255, 0.9);
+        --surface-strong: #fff;
+        --ink: #1f2328;
+        --muted: #667085;
+        --line: rgba(15, 23, 42, 0.1);
+        --link: #0f766e;
+        --link-hover: #115e59;
+        --shadow: 0 20px 60px rgba(16, 24, 40, 0.08);
+        --radius: 18px;
       }
 
       body {
         margin: 0;
-        background: #fff;
-        font-family: "Inter", system-ui, -apple-system, sans-serif;
+        min-height: 100vh;
+        background:
+          radial-gradient(circle at 10% 5%, rgba(15, 118, 110, 0.08), transparent 44%),
+          radial-gradient(circle at 90% 10%, rgba(180, 83, 9, 0.08), transparent 45%),
+          var(--bg);
+        font-family: "Manrope", system-ui, -apple-system, sans-serif;
         color: var(--ink);
-        letter-spacing: -0.01em;
+        letter-spacing: -0.015em;
       }
 
       main {
-        max-width: 60ch;
+        max-width: 980px;
         margin: 0 auto;
-        padding: 48px 32px 60px;
+        padding: 32px 20px 48px;
+      }
+
+      .shell {
+        background: var(--surface);
+        border: 1px solid rgba(255, 255, 255, 0.75);
+        box-shadow: var(--shadow);
+        border-radius: 28px;
+        overflow: hidden;
+        backdrop-filter: blur(10px);
       }
 
       header {
         display: flex;
-        align-items: baseline;
+        align-items: flex-start;
         justify-content: space-between;
-        gap: 12px;
+        gap: 14px;
         flex-wrap: wrap;
+        padding: 26px 26px 18px;
+        border-bottom: 1px solid var(--line);
+      }
+
+      .hero-copy {
+        display: grid;
+        gap: 6px;
+      }
+
+      .eyebrow {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        color: #0f766e;
+        font-size: 0.75rem;
+        font-weight: 700;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+      }
+
+      .eyebrow::before {
+        content: "";
+        width: 6px;
+        height: 6px;
+        border-radius: 999px;
+        background: currentColor;
       }
 
       h1 {
         margin: 0;
-        font-size: 26px;
+        font-family: "Newsreader", Georgia, serif;
+        font-size: clamp(2rem, 4vw, 2.4rem);
+        line-height: 1.05;
         font-weight: 500;
+        letter-spacing: -0.03em;
       }
 
       .note {
-        font-size: 0.9rem;
+        font-size: 0.92rem;
         color: var(--muted);
+        line-height: 1.4;
+      }
+
+      .chip {
+        align-self: flex-start;
+        background: rgba(255, 255, 255, 0.7);
+        border: 1px solid var(--line);
+        border-radius: 999px;
+        padding: 8px 12px;
+        font-size: 0.82rem;
+        color: var(--muted);
+        white-space: nowrap;
       }
 
       .auth {
-        margin: 16px 0 12px;
+        margin: 0;
+        padding: 18px 26px 0;
+        display: grid;
+        gap: 12px;
+      }
+
+      .auth-row {
         display: flex;
         flex-wrap: wrap;
         gap: 10px;
-        align-items: baseline;
+        align-items: center;
       }
 
-      .auth input[type="password"] {
-        min-width: 240px;
-        padding: 3px 5px;
-        border: 1px solid var(--border);
+      .panel {
+        background: rgba(255, 255, 255, 0.72);
+        border: 1px solid var(--line);
+        border-radius: var(--radius);
+        padding: 16px;
       }
 
-      .auth button {
-        border: 1px solid var(--border);
-        background: #f2f2f2;
-        padding: 3px 10px;
-        cursor: pointer;
-        font-size: 13px;
-      }
-
-      form {
-        margin-top: 12px;
-        display: flex;
-        flex-wrap: wrap;
-        gap: 10px;
-        align-items: baseline;
+      .field-group {
+        display: grid;
+        gap: 6px;
+        flex: 1 1 240px;
       }
 
       label {
-        font-weight: 600;
+        font-weight: 700;
+        font-size: 0.84rem;
+        color: #344054;
       }
 
+      input[type="password"],
       input[type="url"],
       input[type="text"] {
-        flex: 1;
-        min-width: 240px;
-        padding: 3px 5px;
-        border: 1px solid var(--border);
+        width: 100%;
+        min-height: 42px;
+        box-sizing: border-box;
+        padding: 10px 12px;
+        border-radius: 12px;
+        border: 1px solid rgba(15, 23, 42, 0.12);
+        background: rgba(255, 255, 255, 0.95);
+        color: var(--ink);
+        font: inherit;
+      }
+
+      input:focus {
+        outline: none;
+        border-color: rgba(15, 118, 110, 0.45);
+        box-shadow: 0 0 0 4px rgba(15, 118, 110, 0.12);
+      }
+
+      button {
+        border: 1px solid transparent;
+        background: #0f766e;
+        color: #fff;
+        padding: 10px 14px;
+        min-height: 42px;
+        border-radius: 12px;
+        cursor: pointer;
+        font: inherit;
+        font-weight: 600;
+        letter-spacing: -0.01em;
+        transition: transform 120ms ease, opacity 120ms ease, background-color 120ms ease, border-color 120ms ease;
+      }
+
+      button:hover {
+        transform: translateY(-1px);
+        background: #115e59;
+      }
+
+      button:active {
+        transform: translateY(0);
+      }
+
+      .button-secondary {
+        background: rgba(255, 255, 255, 0.8);
+        color: var(--ink);
+        border-color: rgba(15, 23, 42, 0.12);
+      }
+
+      .button-secondary:hover {
+        background: rgba(255, 255, 255, 1);
+      }
+
+      .button-danger {
+        background: rgba(239, 68, 68, 0.1);
+        color: #b42318;
+        border-color: rgba(239, 68, 68, 0.18);
+        min-height: 34px;
+        padding: 6px 10px;
+        border-radius: 10px;
+        font-size: 0.82rem;
+      }
+
+      .button-danger:hover {
+        background: rgba(239, 68, 68, 0.14);
+      }
+
+      #admin-ui {
+        padding: 14px 26px 26px;
+      }
+
+      form {
+        margin: 0;
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr) auto;
+        gap: 12px;
+        align-items: end;
+      }
+
+      .field {
+        display: grid;
+        gap: 6px;
       }
 
       .status {
-        margin-top: 8px;
+        margin-top: 10px;
         min-height: 18px;
         color: var(--muted);
+        font-size: 0.88rem;
       }
 
       #link-list {
         list-style: none;
-        padding-left: 16px;
-        margin: 18px 0 0;
-        border-left: 1px solid #d1d5db;
+        padding: 14px;
+        margin: 14px 0 0;
+        display: grid;
+        gap: 10px;
+        background: rgba(255, 255, 255, 0.72);
+        border: 1px solid var(--line);
+        border-radius: var(--radius);
       }
 
       #link-list li {
-        margin: 6px 0;
-        padding-left: 18px;
-        position: relative;
+        margin: 0;
+        padding: 12px;
+        border-radius: 14px;
+        border: 1px solid transparent;
+        background: rgba(255, 255, 255, 0.82);
       }
 
-      #link-list li::before {
-        content: ">";
-        position: absolute;
-        left: -2px;
-        color: var(--muted);
+      #link-list li:hover {
+        border-color: rgba(15, 118, 110, 0.18);
+        background: #fff;
       }
 
       .title {
-        font-weight: 500;
+        font-weight: 700;
+        line-height: 1.3;
       }
 
       a {
@@ -135,70 +275,140 @@ const apiBase = import.meta.env.PUBLIC_API_BASE_URL ?? "http://localhost:8787";
 
       a:hover {
         color: var(--link-hover);
-        text-decoration: underline;
+        text-decoration: none;
       }
 
       .url {
         color: var(--muted);
-        font-size: 0.9rem;
-        line-height: 1.35;
+        font-size: 0.84rem;
+        line-height: 1.4;
+        margin-top: 4px;
+        word-break: break-all;
       }
 
       .meta {
         color: var(--muted);
-        font-size: 0.85rem;
-        margin-top: 2px;
+        font-size: 0.8rem;
+        margin-top: 8px;
       }
 
       .row {
         display: flex;
         justify-content: space-between;
         gap: 10px;
-        align-items: baseline;
+        align-items: flex-start;
         flex-wrap: wrap;
       }
 
-      .row button {
-        border: 1px solid var(--border);
-        background: #f2f2f2;
-        padding: 2px 8px;
-        cursor: pointer;
-        font-size: 12px;
+      .row .title {
+        flex: 1 1 260px;
+      }
+
+      @media (max-width: 840px) {
+        form {
+          grid-template-columns: 1fr;
+        }
+
+        form button[type="submit"] {
+          width: 100%;
+        }
+      }
+
+      @media (max-width: 640px) {
+        main {
+          padding: 16px 12px 28px;
+        }
+
+        .shell {
+          border-radius: 20px;
+        }
+
+        header {
+          padding: 20px 18px 14px;
+        }
+
+        .auth {
+          padding: 14px 18px 0;
+        }
+
+        #admin-ui {
+          padding: 12px 18px 18px;
+        }
+
+        .auth-row {
+          align-items: stretch;
+        }
+
+        .auth-row .field-group {
+          flex-basis: 100%;
+        }
+
+        .auth-row button {
+          width: 100%;
+        }
+
+        .chip {
+          white-space: normal;
+        }
+
+        #link-list {
+          padding: 10px;
+          gap: 8px;
+        }
       }
     </style>
   </head>
   <body>
     <main>
-      <header>
-        <h1>{appName}</h1>
-        <div class="note">Access protected</div>
-      </header>
+      <section class="shell">
+        <header>
+          <div class="hero-copy">
+            <div class="eyebrow">Admin</div>
+            <h1>{appName}</h1>
+            <div class="note">Add, review, and remove saved links.</div>
+          </div>
+          <div class="chip">Access protected</div>
+        </header>
 
-      <section class="auth">
-        <div id="auth-status" class="note">Enter admin password to manage links.</div>
-        <input
-          id="admin-password"
-          type="password"
-          placeholder="Admin password"
-          autocomplete="current-password"
-        />
-        <button type="button" id="sign-in">Sign in</button>
-        <button type="button" id="sign-out" hidden>Sign out</button>
-      </section>
+        <section class="auth">
+          <div class="panel">
+            <div id="auth-status" class="note">Enter admin password to manage links.</div>
+            <div class="auth-row" style="margin-top: 10px;">
+              <div class="field-group">
+                <label for="admin-password">Password</label>
+                <input
+                  id="admin-password"
+                  type="password"
+                  placeholder="Admin password"
+                  autocomplete="current-password"
+                />
+              </div>
+              <button type="button" id="sign-in">Sign in</button>
+              <button type="button" id="sign-out" class="button-secondary" hidden>Sign out</button>
+            </div>
+          </div>
+        </section>
 
-      <section id="admin-ui" hidden>
-        <form id="link-form">
-          <label for="title">Title</label>
-          <input id="title" name="title" type="text" placeholder="A clear title" required />
-          <label for="url">URL</label>
-          <input id="url" name="url" type="url" placeholder="https://example.com" required />
-          <button type="submit">Add</button>
-        </form>
-        <div class="status" id="status"></div>
+        <section id="admin-ui" hidden>
+          <div class="panel">
+            <form id="link-form">
+              <div class="field">
+                <label for="title">Title</label>
+                <input id="title" name="title" type="text" placeholder="A clear title" required />
+              </div>
+              <div class="field">
+                <label for="url">URL</label>
+                <input id="url" name="url" type="url" placeholder="https://example.com" required />
+              </div>
+              <button type="submit">Add link</button>
+            </form>
+            <div class="status" id="status"></div>
+          </div>
 
-        <ul id="link-list">
-          <li>Loading...</li>
-        </ul>
+          <ul id="link-list">
+            <li>Loading...</li>
+          </ul>
+        </section>
       </section>
     </main>
 
@@ -259,7 +469,7 @@ const apiBase = import.meta.env.PUBLIC_API_BASE_URL ?? "http://localhost:8787";
                   <div class="title">
                     <a href="${url}" target="_blank" rel="noreferrer">${displayTitle}</a>
                   </div>
-                  <button data-id="${item.id}">Delete</button>
+                  <button data-id="${item.id}" class="button-danger" type="button">Delete</button>
                 </div>
                 ${urlMarkup}
                 <div class="meta">${created}</div>
