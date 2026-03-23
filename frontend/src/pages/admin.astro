@@ -12,120 +12,185 @@ const apiBase = import.meta.env.PUBLIC_API_BASE_URL ?? "http://localhost:8787";
     <meta name="generator" content={Astro.generator} />
     <title>{appName}</title>
     <style is:global>
-      @import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap");
+      @import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap");
 
       :root {
         color-scheme: light;
+        --bg: #fff;
         --ink: #1f2937;
         --muted: #6b7280;
-        --link: #3b82f6;
-        --link-hover: #1d4ed8;
-        --border: #c7c7c7;
+        --line: #e5e7eb;
+        --line-soft: #f1f5f9;
+        --link: #0f4c81;
+        --link-hover: #0c3b64;
+        --btn: #1f2937;
+        --btn-hover: #111827;
+        --danger: #b42318;
       }
 
       body {
         margin: 0;
-        background: #fff;
+        background: var(--bg);
         font-family: "Inter", system-ui, -apple-system, sans-serif;
         color: var(--ink);
         letter-spacing: -0.01em;
       }
 
       main {
-        max-width: 60ch;
+        max-width: 860px;
         margin: 0 auto;
-        padding: 48px 32px 60px;
+        padding: 42px 24px 56px;
       }
 
       header {
-        display: flex;
-        align-items: baseline;
-        justify-content: space-between;
-        gap: 12px;
-        flex-wrap: wrap;
+        margin-bottom: 18px;
       }
 
       h1 {
         margin: 0;
-        font-size: 26px;
-        font-weight: 500;
+        font-size: clamp(1.65rem, 2.4vw, 2rem);
+        line-height: 1.15;
+        font-weight: 600;
+        letter-spacing: -0.02em;
       }
 
       .note {
         font-size: 0.9rem;
         color: var(--muted);
+        line-height: 1.45;
+        margin-top: 8px;
       }
 
       .auth {
-        margin: 16px 0 12px;
+        margin: 0 0 16px;
+      }
+
+      .auth-row {
         display: flex;
         flex-wrap: wrap;
-        gap: 10px;
-        align-items: baseline;
+        gap: 12px;
+        align-items: center;
       }
 
-      .auth input[type="password"] {
-        min-width: 240px;
-        padding: 3px 5px;
-        border: 1px solid var(--border);
-      }
-
-      .auth button {
-        border: 1px solid var(--border);
-        background: #f2f2f2;
-        padding: 3px 10px;
-        cursor: pointer;
-        font-size: 13px;
-      }
-
-      form {
-        margin-top: 12px;
-        display: flex;
-        flex-wrap: wrap;
-        gap: 10px;
-        align-items: baseline;
+      .field-group {
+        display: grid;
+        gap: 6px;
+        flex: 1 1 280px;
       }
 
       label {
         font-weight: 600;
+        font-size: 0.82rem;
+        color: #374151;
       }
 
+      input[type="password"],
       input[type="url"],
       input[type="text"] {
-        flex: 1;
-        min-width: 240px;
-        padding: 3px 5px;
-        border: 1px solid var(--border);
+        width: 100%;
+        min-height: 44px;
+        box-sizing: border-box;
+        padding: 10px 12px;
+        border-radius: 8px;
+        border: 1px solid #d1d5db;
+        background: #fff;
+        color: var(--ink);
+        font: inherit;
+      }
+
+      input:focus {
+        outline: none;
+        border-color: #9ca3af;
+        box-shadow: 0 0 0 3px rgba(156, 163, 175, 0.2);
+      }
+
+      button {
+        border: 1px solid var(--btn);
+        background: var(--btn);
+        color: #fff;
+        padding: 10px 14px;
+        min-height: 44px;
+        border-radius: 8px;
+        cursor: pointer;
+        font: inherit;
+        font-weight: 600;
+        font-size: 0.9rem;
+        transition: background-color 120ms ease, border-color 120ms ease;
+      }
+
+      button:hover {
+        background: var(--btn-hover);
+        border-color: var(--btn-hover);
+      }
+
+      .button-secondary {
+        background: #fff;
+        color: var(--ink);
+        border-color: #d1d5db;
+      }
+
+      .button-secondary:hover {
+        background: #f9fafb;
+      }
+
+      .button-danger {
+        background: #fff;
+        color: var(--danger);
+        border-color: #fecaca;
+        min-height: 32px;
+        padding: 5px 10px;
+        border-radius: 7px;
+        font-size: 0.82rem;
+      }
+
+      .button-danger:hover {
+        background: #fff5f5;
+      }
+
+      #admin-ui {
+        margin-top: 4px;
+      }
+
+      form {
+        margin: 0;
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr) auto;
+        gap: 12px;
+        align-items: end;
+        padding: 14px 0 18px;
+        border-top: 1px solid var(--line);
+        border-bottom: 1px solid var(--line);
+      }
+
+      .field {
+        display: grid;
+        gap: 6px;
       }
 
       .status {
-        margin-top: 8px;
+        margin-top: 10px;
         min-height: 18px;
         color: var(--muted);
+        font-size: 0.88rem;
       }
 
       #link-list {
         list-style: none;
-        padding-left: 16px;
-        margin: 18px 0 0;
-        border-left: 1px solid #d1d5db;
+        padding: 0;
+        margin: 14px 0 0;
+        border-top: 1px solid var(--line);
       }
 
       #link-list li {
-        margin: 6px 0;
-        padding-left: 18px;
-        position: relative;
-      }
-
-      #link-list li::before {
-        content: ">";
-        position: absolute;
-        left: -2px;
-        color: var(--muted);
+        margin: 0;
+        padding: 14px 0;
+        border-bottom: 1px solid var(--line-soft);
       }
 
       .title {
-        font-weight: 500;
+        font-weight: 600;
+        font-size: 0.98rem;
+        line-height: 1.3;
       }
 
       a {
@@ -136,34 +201,65 @@ const apiBase = import.meta.env.PUBLIC_API_BASE_URL ?? "http://localhost:8787";
       a:hover {
         color: var(--link-hover);
         text-decoration: underline;
+        text-underline-offset: 2px;
       }
 
       .url {
         color: var(--muted);
-        font-size: 0.9rem;
-        line-height: 1.35;
+        font-size: 0.82rem;
+        line-height: 1.45;
+        margin-top: 5px;
+        word-break: break-all;
       }
 
       .meta {
         color: var(--muted);
-        font-size: 0.85rem;
-        margin-top: 2px;
+        font-size: 0.77rem;
+        margin-top: 7px;
       }
 
       .row {
         display: flex;
         justify-content: space-between;
         gap: 10px;
-        align-items: baseline;
+        align-items: center;
         flex-wrap: wrap;
       }
 
-      .row button {
-        border: 1px solid var(--border);
-        background: #f2f2f2;
-        padding: 2px 8px;
-        cursor: pointer;
-        font-size: 12px;
+      .row .title {
+        flex: 1 1 260px;
+      }
+
+      @media (max-width: 840px) {
+        form {
+          grid-template-columns: 1fr;
+        }
+
+        form button[type="submit"] {
+          width: 100%;
+        }
+      }
+
+      @media (max-width: 640px) {
+        main {
+          padding: 24px 16px 34px;
+        }
+
+        header {
+          margin-bottom: 16px;
+        }
+
+        .auth-row {
+          align-items: stretch;
+        }
+
+        .auth-row .field-group {
+          flex-basis: 100%;
+        }
+
+        .auth-row button {
+          width: 100%;
+        }
       }
     </style>
   </head>
@@ -171,28 +267,37 @@ const apiBase = import.meta.env.PUBLIC_API_BASE_URL ?? "http://localhost:8787";
     <main>
       <header>
         <h1>{appName}</h1>
-        <div class="note">Access protected</div>
+        <div class="note">Add, review, and remove saved links. Access is protected.</div>
       </header>
 
       <section class="auth">
         <div id="auth-status" class="note">Enter admin password to manage links.</div>
-        <input
-          id="admin-password"
-          type="password"
-          placeholder="Admin password"
-          autocomplete="current-password"
-        />
-        <button type="button" id="sign-in">Sign in</button>
-        <button type="button" id="sign-out" hidden>Sign out</button>
+        <div class="auth-row" style="margin-top: 10px;">
+          <div class="field-group">
+            <label for="admin-password">Password</label>
+            <input
+              id="admin-password"
+              type="password"
+              placeholder="Admin password"
+              autocomplete="current-password"
+            />
+          </div>
+          <button type="button" id="sign-in">Sign in</button>
+          <button type="button" id="sign-out" class="button-secondary" hidden>Sign out</button>
+        </div>
       </section>
 
       <section id="admin-ui" hidden>
         <form id="link-form">
-          <label for="title">Title</label>
-          <input id="title" name="title" type="text" placeholder="A clear title" required />
-          <label for="url">URL</label>
-          <input id="url" name="url" type="url" placeholder="https://example.com" required />
-          <button type="submit">Add</button>
+          <div class="field">
+            <label for="title">Title</label>
+            <input id="title" name="title" type="text" placeholder="A clear title" required />
+          </div>
+          <div class="field">
+            <label for="url">URL</label>
+            <input id="url" name="url" type="url" placeholder="https://example.com" required />
+          </div>
+          <button type="submit">Add link</button>
         </form>
         <div class="status" id="status"></div>
 
@@ -259,7 +364,7 @@ const apiBase = import.meta.env.PUBLIC_API_BASE_URL ?? "http://localhost:8787";
                   <div class="title">
                     <a href="${url}" target="_blank" rel="noreferrer">${displayTitle}</a>
                   </div>
-                  <button data-id="${item.id}">Delete</button>
+                  <button data-id="${item.id}" class="button-danger" type="button">Delete</button>
                 </div>
                 ${urlMarkup}
                 <div class="meta">${created}</div>
