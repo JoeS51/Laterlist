@@ -32,6 +32,14 @@ const CreateLinkSchema = z.object({
   title: z.string()
 })
 
+const CreatePaperSchema = z.object({
+  url: z.string().url(),
+  title: z.string(),
+  category: z.array(z.string().uuid()).min(1)
+})
+
+
+
 const adminAuth = basicAuth({
   verifyUser: (username, password, c) => {
     return username === c.env.ADMIN_USER && password === c.env.ADMIN_PASSWORD
@@ -57,6 +65,11 @@ app.post('/link', adminAuth, async (c) => {
     .run()
 
   return c.text("created", 201)
+});
+
+app.post('/paper', adminAuth, async (c) => {
+  const raw = await c.req.json();
+  const parsed = 
 });
 
 app.delete('/link/:id', adminAuth, async (c) => {
