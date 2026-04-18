@@ -18,3 +18,9 @@ CREATE TABLE categories (
   id TEXT PRIMARY KEY,
   name TEXT NOT NULL UNIQUE
 );
+
+
+SELECT p.url, p.title, p.created_at, c.name 
+FROM papers as p
+JOIN paper_categories AS pc ON p.id = pc.paper_id
+JOIN categories AS c ON pc.category_id = c.id
