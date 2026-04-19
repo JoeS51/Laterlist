@@ -85,7 +85,7 @@ app.post('/link', adminAuth, async (c) => {
   return c.text("created", 201)
 });
 
-app.post('/paper', async (c) => {
+app.post('/paper', adminAuth, async (c) => {
   const raw = await c.req.json();
   const parsed = CreatePaperSchema.safeParse(raw);
   if (!parsed.success) {
@@ -152,7 +152,18 @@ app.delete('/link/:id', adminAuth, async (c) => {
     .run()
 
   return c.text('deleted', 200)
-})
+});
+
+app.delete('/paper/:id', adminAuth, async (c) => {
+  const id = c.req.param('id');
+
+  await c.env.DB
+    .prepare(`DELETE FROM papers where id = ?`)
+    .bind(id)
+    .run()
+
+  return c.text('deleted', 200)
+});
 
 app.get('/links', async (c) => {
   const result = await c.env.DB
@@ -190,6 +201,14 @@ app.get('/papers', async (c) => {
 
   const papers = Array.from(papersById.values())
   return c.json(papers)
+});
+
+app.get('/papercount', async (c) => {
+  const result = await c.env.DB
+    .prepare(`SELECT COUNT(*) as count FROM papers`)
+    .first();
+
+  return c.json(result)
 });
 
 app.get('/admin/check', adminAuth, (c) => {

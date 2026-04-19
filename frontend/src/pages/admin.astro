@@ -78,6 +78,38 @@ const apiBase = import.meta.env.PUBLIC_API_BASE_URL ?? "http://localhost:8787";
         font-size: 13px;
       }
 
+      .tab-bar {
+        display: flex;
+        gap: 8px;
+        margin: 18px 0 12px;
+        flex-wrap: wrap;
+        border-bottom: 1px solid #e5e7eb;
+      }
+
+      .tab-button {
+        border: 0;
+        border-bottom: 1px solid transparent;
+        background: transparent;
+        color: var(--muted);
+        padding: 0 0 10px;
+        margin-bottom: -1px;
+        font: inherit;
+        cursor: pointer;
+      }
+
+      .tab-button[aria-selected="true"] {
+        color: var(--ink);
+        border-bottom-color: #9ca3af;
+      }
+
+      .tab-panel {
+        display: none;
+      }
+
+      .tab-panel.is-active {
+        display: block;
+      }
+
       form {
         margin-top: 12px;
         display: flex;
@@ -104,6 +136,15 @@ const apiBase = import.meta.env.PUBLIC_API_BASE_URL ?? "http://localhost:8787";
         color: var(--muted);
       }
 
+      .status.is-error {
+        color: #b91c1c;
+      }
+
+      .status.is-success {
+        color: #166534;
+      }
+
+      #paper-list,
       #link-list {
         list-style: none;
         padding-left: 16px;
@@ -111,12 +152,14 @@ const apiBase = import.meta.env.PUBLIC_API_BASE_URL ?? "http://localhost:8787";
         border-left: 1px solid #d1d5db;
       }
 
+      #paper-list li,
       #link-list li {
         margin: 6px 0;
         padding-left: 18px;
         position: relative;
       }
 
+      #paper-list li::before,
       #link-list li::before {
         content: ">";
         position: absolute;
@@ -165,6 +208,57 @@ const apiBase = import.meta.env.PUBLIC_API_BASE_URL ?? "http://localhost:8787";
         cursor: pointer;
         font-size: 12px;
       }
+
+      .category-input-row {
+        width: 100%;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        align-items: center;
+      }
+
+      .tags {
+        width: 100%;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+      }
+
+      .tag {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        border: 1px solid var(--border);
+        border-radius: 999px;
+        background: #f9fafb;
+        padding: 4px 10px;
+        font-size: 0.85rem;
+      }
+
+      .tag button {
+        border: 0;
+        background: transparent;
+        color: var(--muted);
+        cursor: pointer;
+        padding: 0;
+        font: inherit;
+      }
+
+      .categories {
+        margin-top: 8px;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+      }
+
+      .category-chip {
+        border: 1px solid var(--border);
+        border-radius: 999px;
+        background: #f9fafb;
+        color: var(--muted);
+        padding: 2px 8px;
+        font-size: 0.75rem;
+      }
     </style>
   </head>
   <body>
@@ -187,18 +281,50 @@ const apiBase = import.meta.env.PUBLIC_API_BASE_URL ?? "http://localhost:8787";
       </section>
 
       <section id="admin-ui" hidden>
-        <form id="link-form">
-          <label for="title">Title</label>
-          <input id="title" name="title" type="text" placeholder="A clear title" required />
-          <label for="url">URL</label>
-          <input id="url" name="url" type="url" placeholder="https://example.com" required />
-          <button type="submit">Add</button>
-        </form>
-        <div class="status" id="status"></div>
+        <div class="tab-bar" role="tablist" aria-label="Admin sections">
+          <button class="tab-button" id="tab-links" type="button" role="tab" aria-selected="true" aria-controls="panel-links">
+            Links (0)
+          </button>
+          <button class="tab-button" id="tab-papers" type="button" role="tab" aria-selected="false" aria-controls="panel-papers">
+            Research Papers
+          </button>
+        </div>
 
-        <ul id="link-list">
-          <li>Loading...</li>
-        </ul>
+        <section id="panel-links" class="tab-panel is-active" role="tabpanel" aria-labelledby="tab-links">
+          <form id="link-form">
+            <label for="link-title">Title</label>
+            <input id="link-title" name="title" type="text" placeholder="A clear title" required />
+            <label for="link-url">URL</label>
+            <input id="link-url" name="url" type="url" placeholder="https://example.com" required />
+            <button type="submit">Add</button>
+          </form>
+          <div class="status" id="link-status"></div>
+
+          <ul id="link-list">
+            <li>Loading...</li>
+          </ul>
+        </section>
+
+        <section id="panel-papers" class="tab-panel" role="tabpanel" aria-labelledby="tab-papers">
+          <form id="paper-form">
+            <label for="paper-title">Title</label>
+            <input id="paper-title" name="title" type="text" placeholder="Paper title" required />
+            <label for="paper-url">URL</label>
+            <input id="paper-url" name="url" type="url" placeholder="https://arxiv.org/abs/..." required />
+            <div class="category-input-row">
+              <label for="paper-category">Category</label>
+              <input id="paper-category" name="category" type="text" placeholder="Type a category and press Enter" />
+              <button type="button" id="add-category">Add category</button>
+            </div>
+            <div class="tags" id="paper-tags"></div>
+            <button type="submit">Add paper</button>
+          </form>
+          <div class="status" id="paper-status"></div>
+
+          <ul id="paper-list">
+            <li>Loading...</li>
+          </ul>
+        </section>
       </section>
     </main>
 
@@ -211,12 +337,42 @@ const apiBase = import.meta.env.PUBLIC_API_BASE_URL ?? "http://localhost:8787";
       const signInButton = document.querySelector("#sign-in");
       const signOutButton = document.querySelector("#sign-out");
       const adminUi = document.querySelector("#admin-ui");
-      const list = document.querySelector("#link-list");
-      const form = document.querySelector("#link-form");
-      const status = document.querySelector("#status");
+      const linksTab = document.querySelector("#tab-links");
+      const papersTab = document.querySelector("#tab-papers");
+      const linkPanel = document.querySelector("#panel-links");
+      const paperPanel = document.querySelector("#panel-papers");
+      const linkList = document.querySelector("#link-list");
+      const paperList = document.querySelector("#paper-list");
+      const linkForm = document.querySelector("#link-form");
+      const paperForm = document.querySelector("#paper-form");
+      const linkStatus = document.querySelector("#link-status");
+      const paperStatus = document.querySelector("#paper-status");
+      const paperCategoryInput = document.querySelector("#paper-category");
+      const addCategoryButton = document.querySelector("#add-category");
+      const paperTags = document.querySelector("#paper-tags");
 
       const adminUser = "user";
       const storageKey = "laterlist_admin_password";
+      const paperCategories = [];
+
+      const setStatus = (element, message, tone = "default") => {
+        element.textContent = message;
+        element.classList.remove("is-error", "is-success");
+        if (tone === "error") {
+          element.classList.add("is-error");
+        }
+        if (tone === "success") {
+          element.classList.add("is-success");
+        }
+      };
+
+      const setActiveTab = (tab) => {
+        const isLinks = tab === "links";
+        linksTab.setAttribute("aria-selected", String(isLinks));
+        papersTab.setAttribute("aria-selected", String(!isLinks));
+        linkPanel.classList.toggle("is-active", isLinks);
+        paperPanel.classList.toggle("is-active", !isLinks);
+      };
 
       const setAuthUi = (hasPassword) => {
         if (hasPassword) {
@@ -239,12 +395,48 @@ const apiBase = import.meta.env.PUBLIC_API_BASE_URL ?? "http://localhost:8787";
         return `Basic ${btoa(`${adminUser}:${password}`)}`;
       };
 
-      const renderLinks = (items) => {
-        if (!items.length) {
-          list.innerHTML = "<li>No links yet.</li>";
+      const renderPaperTags = () => {
+        if (!paperCategories.length) {
+          paperTags.innerHTML = "";
           return;
         }
-        list.innerHTML = items
+
+        paperTags.innerHTML = paperCategories
+          .map(
+            (category) => `
+              <span class="tag">
+                <span>${category}</span>
+                <button type="button" data-remove-category="${category}">x</button>
+              </span>
+            `
+          )
+          .join("");
+      };
+
+      const addPaperCategory = () => {
+        const value = String(paperCategoryInput.value || "").trim().toLowerCase();
+        if (!value || paperCategories.includes(value)) {
+          paperCategoryInput.value = "";
+          return;
+        }
+        paperCategories.push(value);
+        paperCategoryInput.value = "";
+        renderPaperTags();
+      };
+
+      const resetPaperForm = () => {
+        paperForm.reset();
+        paperCategories.length = 0;
+        renderPaperTags();
+      };
+
+      const renderLinks = (items) => {
+        linksTab.textContent = `Links (${items.length})`;
+        if (!items.length) {
+          linkList.innerHTML = "<li>No links yet.</li>";
+          return;
+        }
+        linkList.innerHTML = items
           .map((item) => {
             const url = item.url ?? item.URL ?? "";
             const title = item.title ?? "";
@@ -269,13 +461,58 @@ const apiBase = import.meta.env.PUBLIC_API_BASE_URL ?? "http://localhost:8787";
           .join("");
       };
 
+      const renderPapers = (items) => {
+        papersTab.textContent = `Research Papers (${items.length})`;
+        if (!items.length) {
+          paperList.innerHTML = "<li>No research papers yet.</li>";
+          return;
+        }
+
+        paperList.innerHTML = items
+          .map((item) => {
+            const created = item.created_at
+              ? new Date(item.created_at).toLocaleString()
+              : "";
+            const categories = Array.isArray(item.categories) ? item.categories : [];
+            const categoryMarkup = categories.length
+              ? `<div class="categories">${categories
+                  .map((category) => `<span class="category-chip">${category}</span>`)
+                  .join("")}</div>`
+              : "";
+
+            return `
+              <li>
+                <div class="row">
+                  <div class="title">
+                    <a href="${item.url}" target="_blank" rel="noreferrer">${item.title}</a>
+                  </div>
+                  <button data-paper-id="${item.id}">Delete</button>
+                </div>
+                <div class="url">${item.url}</div>
+                <div class="meta">${created}</div>
+                ${categoryMarkup}
+              </li>
+            `;
+          })
+          .join("");
+      };
+
       const loadLinks = async () => {
         const response = await fetch(`${apiBase}/links`);
         const data = await response.json();
         renderLinks(Array.isArray(data) ? data : []);
       };
 
+      const loadPapers = async () => {
+        const response = await fetch(`${apiBase}/papers`);
+        const data = await response.json();
+        renderPapers(Array.isArray(data) ? data : []);
+      };
+
       const setupHandlers = () => {
+        linksTab.addEventListener("click", () => setActiveTab("links"));
+        papersTab.addEventListener("click", () => setActiveTab("papers"));
+
         signInButton.addEventListener("click", async () => {
           const password = String(passwordInput.value || "").trim();
           if (!password) {
@@ -303,21 +540,41 @@ const apiBase = import.meta.env.PUBLIC_API_BASE_URL ?? "http://localhost:8787";
           setAuthUi(false);
         });
 
-        form.addEventListener("submit", async (event) => {
+        addCategoryButton.addEventListener("click", addPaperCategory);
+
+        paperCategoryInput.addEventListener("keydown", (event) => {
+          if (event.key === "Enter") {
+            event.preventDefault();
+            addPaperCategory();
+          }
+        });
+
+        paperTags.addEventListener("click", (event) => {
+          const button = event.target.closest("button[data-remove-category]");
+          if (!button) return;
+          const category = button.dataset.removeCategory;
+          const index = paperCategories.indexOf(category);
+          if (index >= 0) {
+            paperCategories.splice(index, 1);
+            renderPaperTags();
+          }
+        });
+
+        linkForm.addEventListener("submit", async (event) => {
           event.preventDefault();
-          status.textContent = "Saving...";
-          const formData = new FormData(form);
+          setStatus(linkStatus, "Saving...");
+          const formData = new FormData(linkForm);
           const url = formData.get("url");
           const title = String(formData.get("title") ?? "").trim();
 
           if (!title) {
-            status.textContent = "Title is required.";
+            setStatus(linkStatus, "Title is required.", "error");
             return;
           }
 
           const authHeader = getAuthHeader();
           if (!authHeader) {
-            status.textContent = "Admin password required.";
+            setStatus(linkStatus, "Admin password required.", "error");
             return;
           }
 
@@ -331,37 +588,113 @@ const apiBase = import.meta.env.PUBLIC_API_BASE_URL ?? "http://localhost:8787";
           });
 
           if (!response.ok) {
-            status.textContent = "Could not save.";
+            setStatus(linkStatus, "Could not save.", "error");
             return;
           }
 
-          status.textContent = "Saved.";
-          form.reset();
+          setStatus(linkStatus, "Saved.", "success");
+          linkForm.reset();
           await loadLinks();
         });
 
-        list.addEventListener("click", async (event) => {
+        linkList.addEventListener("click", async (event) => {
           const button = event.target.closest("button[data-id]");
           if (!button) return;
           const authHeader = getAuthHeader();
           if (!authHeader) {
-            status.textContent = "Admin password required.";
+            setStatus(linkStatus, "Admin password required.", "error");
             return;
           }
 
           const id = button.dataset.id;
-          await fetch(`${apiBase}/link/${id}`, {
+          const response = await fetch(`${apiBase}/link/${id}`, {
             method: "DELETE",
             headers: { Authorization: authHeader },
           });
+          if (!response.ok) {
+            setStatus(linkStatus, "Could not delete.", "error");
+            return;
+          }
+          setStatus(linkStatus, "Deleted.", "success");
           await loadLinks();
+        });
+
+        paperForm.addEventListener("submit", async (event) => {
+          event.preventDefault();
+          if (paperCategoryInput.value.trim()) {
+            addPaperCategory();
+          }
+
+          setStatus(paperStatus, "Saving...");
+          const formData = new FormData(paperForm);
+          const url = formData.get("url");
+          const title = String(formData.get("title") ?? "").trim();
+
+          if (!title) {
+            setStatus(paperStatus, "Title is required.", "error");
+            return;
+          }
+
+          if (!paperCategories.length) {
+            setStatus(paperStatus, "Add at least one category.", "error");
+            return;
+          }
+
+          const authHeader = getAuthHeader();
+          if (!authHeader) {
+            setStatus(paperStatus, "Admin password required.", "error");
+            return;
+          }
+
+          const response = await fetch(`${apiBase}/paper`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: authHeader,
+            },
+            body: JSON.stringify({ url, title, category: paperCategories }),
+          });
+
+          if (!response.ok) {
+            setStatus(paperStatus, "Could not save paper.", "error");
+            return;
+          }
+
+          setStatus(paperStatus, "Saved.", "success");
+          resetPaperForm();
+          await loadPapers();
+        });
+
+        paperList.addEventListener("click", async (event) => {
+          const button = event.target.closest("button[data-paper-id]");
+          if (!button) return;
+
+          const authHeader = getAuthHeader();
+          if (!authHeader) {
+            setStatus(paperStatus, "Admin password required.", "error");
+            return;
+          }
+
+          const id = button.dataset.paperId;
+          const response = await fetch(`${apiBase}/paper/${id}`, {
+            method: "DELETE",
+            headers: { Authorization: authHeader },
+          });
+
+          if (!response.ok) {
+            setStatus(paperStatus, "Could not delete paper.", "error");
+            return;
+          }
+
+          setStatus(paperStatus, "Deleted.", "success");
+          await loadPapers();
         });
       };
 
       const init = async () => {
         setAuthUi(Boolean(getPassword()));
         setupHandlers();
-        await loadLinks();
+        await Promise.all([loadLinks(), loadPapers()]);
       };
 
       init();
