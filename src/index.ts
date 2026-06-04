@@ -85,6 +85,10 @@ app.post('/link', adminAuth, async (c) => {
   return c.text("created", 201)
 });
 
+app.post('/to-read', adminAuth, async (c) => {
+  // todo
+});
+
 app.post('/paper', adminAuth, async (c) => {
   const raw = await c.req.json();
   const parsed = CreatePaperSchema.safeParse(raw);
