@@ -101,6 +101,7 @@ const apiBase = import.meta.env.PUBLIC_API_BASE_URL ?? "http://localhost:8787";
         position: relative;
       }
 
+      #podcast-list li,
       #paper-list li,
       #link-list li {
         margin: 6px 0;
@@ -108,6 +109,7 @@ const apiBase = import.meta.env.PUBLIC_API_BASE_URL ?? "http://localhost:8787";
         position: relative;
       }
 
+      #podcast-list li::before,
       #paper-list li::before,
       #link-list li::before {
         content: ">";
@@ -218,7 +220,7 @@ const apiBase = import.meta.env.PUBLIC_API_BASE_URL ?? "http://localhost:8787";
       <header>
         <h1>{appName}</h1>
         <div class="subtitle">
-          Articles/papers I’ve read and liked.
+          Articles, papers, and podcasts I’ve read or listened to and liked.
         </div>
       </header>
 
@@ -228,6 +230,9 @@ const apiBase = import.meta.env.PUBLIC_API_BASE_URL ?? "http://localhost:8787";
         </button>
         <button class="tab-button" id="tab-papers" type="button" role="tab" aria-selected="false" aria-controls="panel-papers">
           Research Papers (0)
+        </button>
+        <button class="tab-button" id="tab-podcasts" type="button" role="tab" aria-selected="false" aria-controls="panel-podcasts">
+          Podcasts (0)
         </button>
       </div>
 
@@ -239,6 +244,12 @@ const apiBase = import.meta.env.PUBLIC_API_BASE_URL ?? "http://localhost:8787";
 
       <section id="panel-papers" class="panel" role="tabpanel" aria-labelledby="tab-papers">
         <ul id="paper-list">
+          <li>Loading...</li>
+        </ul>
+      </section>
+
+      <section id="panel-podcasts" class="panel" role="tabpanel" aria-labelledby="tab-podcasts">
+        <ul id="podcast-list">
           <li>Loading...</li>
         </ul>
       </section>
@@ -255,19 +266,22 @@ const apiBase = import.meta.env.PUBLIC_API_BASE_URL ?? "http://localhost:8787";
     <script type="module" define:vars={{ apiBase }}>
       const linkList = document.querySelector("#link-list");
       const paperList = document.querySelector("#paper-list");
+      const podcastList = document.querySelector("#podcast-list");
       const linksTab = document.querySelector("#tab-links");
       const papersTab = document.querySelector("#tab-papers");
+      const podcastsTab = document.querySelector("#tab-podcasts");
+      const tabs = { links: linksTab, papers: papersTab, podcasts: podcastsTab };
       const panels = {
         links: document.querySelector("#panel-links"),
         papers: document.querySelector("#panel-papers"),
+        podcasts: document.querySelector("#panel-podcasts"),
       };
 
       const setActiveTab = (tab) => {
-        const isLinks = tab === "links";
-        linksTab.setAttribute("aria-selected", String(isLinks));
-        papersTab.setAttribute("aria-selected", String(!isLinks));
-        panels.links.classList.toggle("is-active", isLinks);
-        panels.papers.classList.toggle("is-active", !isLinks);
+        Object.entries(tabs).forEach(([name, button]) => {
+          button.setAttribute("aria-selected", String(name === tab));
+          panels[name].classList.toggle("is-active", name === tab);
+        });
       };
 
       const renderLinks = (items) => {
@@ -331,6 +345,31 @@ const apiBase = import.meta.env.PUBLIC_API_BASE_URL ?? "http://localhost:8787";
           .join("");
       };
 
+      const renderPodcasts = (items) => {
+        podcastsTab.textContent = `Podcasts (${items.length})`;
+        if (!items.length) {
+          podcastList.innerHTML = "<li>No podcasts yet.</li>";
+          return;
+        }
+
+        podcastList.innerHTML = items
+          .map((item) => {
+            const created = item.created_at
+              ? new Date(item.created_at).toLocaleString()
+              : "";
+            return `
+              <li>
+                <div class="title">
+                  <a href="${item.url}" target="_blank" rel="noreferrer">${item.title}</a>
+                </div>
+                <div class="url">${item.url}</div>
+                <div class="meta">${created}</div>
+              </li>
+            `;
+          })
+          .join("");
+      };
+
       const loadLinks = async () => {
         const response = await fetch(`${apiBase}/links`);
         const data = await response.json();
@@ -343,10 +382,17 @@ const apiBase = import.meta.env.PUBLIC_API_BASE_URL ?? "http://localhost:8787";
         renderPapers(Array.isArray(data) ? data : []);
       };
 
+      const loadPodcasts = async () => {
+        const response = await fetch(`${apiBase}/podcasts`);
+        const data = await response.json();
+        renderPodcasts(Array.isArray(data) ? data : []);
+      };
+
       linksTab.addEventListener("click", () => setActiveTab("links"));
       papersTab.addEventListener("click", () => setActiveTab("papers"));
+      podcastsTab.addEventListener("click", () => setActiveTab("podcasts"));
 
-      await Promise.all([loadLinks(), loadPapers()]);
+      await Promise.all([loadLinks(), loadPapers(), loadPodcasts()]);
     </script>
   </body>
 </html>

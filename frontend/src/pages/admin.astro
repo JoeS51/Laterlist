@@ -144,6 +144,7 @@ const apiBase = import.meta.env.PUBLIC_API_BASE_URL ?? "http://localhost:8787";
         color: #166534;
       }
 
+      #podcast-list,
       #paper-list,
       #link-list {
         list-style: none;
@@ -152,6 +153,7 @@ const apiBase = import.meta.env.PUBLIC_API_BASE_URL ?? "http://localhost:8787";
         border-left: 1px solid #d1d5db;
       }
 
+      #podcast-list li,
       #paper-list li,
       #link-list li {
         margin: 6px 0;
@@ -159,6 +161,7 @@ const apiBase = import.meta.env.PUBLIC_API_BASE_URL ?? "http://localhost:8787";
         position: relative;
       }
 
+      #podcast-list li::before,
       #paper-list li::before,
       #link-list li::before {
         content: ">";
@@ -269,7 +272,7 @@ const apiBase = import.meta.env.PUBLIC_API_BASE_URL ?? "http://localhost:8787";
       </header>
 
       <section class="auth">
-        <div id="auth-status" class="note">Enter admin password to manage links.</div>
+        <div id="auth-status" class="note">Enter admin password to manage the list.</div>
         <input
           id="admin-password"
           type="password"
@@ -288,6 +291,9 @@ const apiBase = import.meta.env.PUBLIC_API_BASE_URL ?? "http://localhost:8787";
           <button class="tab-button" id="tab-papers" type="button" role="tab" aria-selected="false" aria-controls="panel-papers">
             Research Papers
           </button>
+          <button class="tab-button" id="tab-podcasts" type="button" role="tab" aria-selected="false" aria-controls="panel-podcasts">
+            Podcasts (0)
+          </button>
         </div>
 
         <section id="panel-links" class="tab-panel is-active" role="tabpanel" aria-labelledby="tab-links">
@@ -305,7 +311,7 @@ const apiBase = import.meta.env.PUBLIC_API_BASE_URL ?? "http://localhost:8787";
           </ul>
         </section>
 
-        <section id="panel-papers" class="tab-panel" role="tabpanel" aria-labelledby="tab-papers">
+          <section id="panel-papers" class="tab-panel" role="tabpanel" aria-labelledby="tab-papers">
           <form id="paper-form">
             <label for="paper-title">Title</label>
             <input id="paper-title" name="title" type="text" placeholder="Paper title" required />
@@ -323,8 +329,23 @@ const apiBase = import.meta.env.PUBLIC_API_BASE_URL ?? "http://localhost:8787";
 
           <ul id="paper-list">
             <li>Loading...</li>
-          </ul>
-        </section>
+            </ul>
+          </section>
+
+          <section id="panel-podcasts" class="tab-panel" role="tabpanel" aria-labelledby="tab-podcasts">
+            <form id="podcast-form">
+              <label for="podcast-title">Title</label>
+              <input id="podcast-title" name="title" type="text" placeholder="Podcast or episode title" required />
+              <label for="podcast-url">URL</label>
+              <input id="podcast-url" name="url" type="url" placeholder="https://example.com/podcast" required />
+              <button type="submit">Add podcast</button>
+            </form>
+            <div class="status" id="podcast-status"></div>
+
+            <ul id="podcast-list">
+              <li>Loading...</li>
+            </ul>
+          </section>
       </section>
     </main>
 
@@ -339,14 +360,19 @@ const apiBase = import.meta.env.PUBLIC_API_BASE_URL ?? "http://localhost:8787";
       const adminUi = document.querySelector("#admin-ui");
       const linksTab = document.querySelector("#tab-links");
       const papersTab = document.querySelector("#tab-papers");
+      const podcastsTab = document.querySelector("#tab-podcasts");
       const linkPanel = document.querySelector("#panel-links");
       const paperPanel = document.querySelector("#panel-papers");
+      const podcastPanel = document.querySelector("#panel-podcasts");
       const linkList = document.querySelector("#link-list");
       const paperList = document.querySelector("#paper-list");
+      const podcastList = document.querySelector("#podcast-list");
       const linkForm = document.querySelector("#link-form");
       const paperForm = document.querySelector("#paper-form");
+      const podcastForm = document.querySelector("#podcast-form");
       const linkStatus = document.querySelector("#link-status");
       const paperStatus = document.querySelector("#paper-status");
+      const podcastStatus = document.querySelector("#podcast-status");
       const paperCategoryInput = document.querySelector("#paper-category");
       const addCategoryButton = document.querySelector("#add-category");
       const paperTags = document.querySelector("#paper-tags");
@@ -367,11 +393,15 @@ const apiBase = import.meta.env.PUBLIC_API_BASE_URL ?? "http://localhost:8787";
       };
 
       const setActiveTab = (tab) => {
-        const isLinks = tab === "links";
-        linksTab.setAttribute("aria-selected", String(isLinks));
-        papersTab.setAttribute("aria-selected", String(!isLinks));
-        linkPanel.classList.toggle("is-active", isLinks);
-        paperPanel.classList.toggle("is-active", !isLinks);
+        const sections = {
+          links: [linksTab, linkPanel],
+          papers: [papersTab, paperPanel],
+          podcasts: [podcastsTab, podcastPanel],
+        };
+        Object.entries(sections).forEach(([name, [button, panel]]) => {
+          button.setAttribute("aria-selected", String(name === tab));
+          panel.classList.toggle("is-active", name === tab);
+        });
       };
 
       const setAuthUi = (hasPassword) => {
@@ -380,7 +410,7 @@ const apiBase = import.meta.env.PUBLIC_API_BASE_URL ?? "http://localhost:8787";
           signOutButton.hidden = false;
           adminUi.hidden = false;
         } else {
-          authStatus.textContent = "Enter admin password to manage links.";
+          authStatus.textContent = "Enter admin password to manage the list.";
           signOutButton.hidden = true;
           adminUi.hidden = true;
         }
@@ -497,6 +527,34 @@ const apiBase = import.meta.env.PUBLIC_API_BASE_URL ?? "http://localhost:8787";
           .join("");
       };
 
+      const renderPodcasts = (items) => {
+        podcastsTab.textContent = `Podcasts (${items.length})`;
+        if (!items.length) {
+          podcastList.innerHTML = "<li>No podcasts yet.</li>";
+          return;
+        }
+
+        podcastList.innerHTML = items
+          .map((item) => {
+            const created = item.created_at
+              ? new Date(item.created_at).toLocaleString()
+              : "";
+            return `
+              <li>
+                <div class="row">
+                  <div class="title">
+                    <a href="${item.url}" target="_blank" rel="noreferrer">${item.title}</a>
+                  </div>
+                  <button data-podcast-id="${item.id}">Delete</button>
+                </div>
+                <div class="url">${item.url}</div>
+                <div class="meta">${created}</div>
+              </li>
+            `;
+          })
+          .join("");
+      };
+
       const loadLinks = async () => {
         const response = await fetch(`${apiBase}/links`);
         const data = await response.json();
@@ -509,9 +567,16 @@ const apiBase = import.meta.env.PUBLIC_API_BASE_URL ?? "http://localhost:8787";
         renderPapers(Array.isArray(data) ? data : []);
       };
 
+      const loadPodcasts = async () => {
+        const response = await fetch(`${apiBase}/podcasts`);
+        const data = await response.json();
+        renderPodcasts(Array.isArray(data) ? data : []);
+      };
+
       const setupHandlers = () => {
         linksTab.addEventListener("click", () => setActiveTab("links"));
         papersTab.addEventListener("click", () => setActiveTab("papers"));
+        podcastsTab.addEventListener("click", () => setActiveTab("podcasts"));
 
         signInButton.addEventListener("click", async () => {
           const password = String(passwordInput.value || "").trim();
@@ -689,12 +754,74 @@ const apiBase = import.meta.env.PUBLIC_API_BASE_URL ?? "http://localhost:8787";
           setStatus(paperStatus, "Deleted.", "success");
           await loadPapers();
         });
+
+        podcastForm.addEventListener("submit", async (event) => {
+          event.preventDefault();
+          setStatus(podcastStatus, "Saving...");
+          const formData = new FormData(podcastForm);
+          const url = formData.get("url");
+          const title = String(formData.get("title") ?? "").trim();
+
+          if (!title) {
+            setStatus(podcastStatus, "Title is required.", "error");
+            return;
+          }
+
+          const authHeader = getAuthHeader();
+          if (!authHeader) {
+            setStatus(podcastStatus, "Admin password required.", "error");
+            return;
+          }
+
+          const response = await fetch(`${apiBase}/podcast`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: authHeader,
+            },
+            body: JSON.stringify({ url, title }),
+          });
+
+          if (!response.ok) {
+            setStatus(podcastStatus, "Could not save podcast.", "error");
+            return;
+          }
+
+          setStatus(podcastStatus, "Saved.", "success");
+          podcastForm.reset();
+          await loadPodcasts();
+        });
+
+        podcastList.addEventListener("click", async (event) => {
+          const button = event.target.closest("button[data-podcast-id]");
+          if (!button) return;
+
+          const authHeader = getAuthHeader();
+          if (!authHeader) {
+            setStatus(podcastStatus, "Admin password required.", "error");
+            return;
+          }
+
+          const id = button.dataset.podcastId;
+          const response = await fetch(`${apiBase}/podcast/${id}`, {
+            method: "DELETE",
+            headers: { Authorization: authHeader },
+          });
+
+          if (!response.ok) {
+            setStatus(podcastStatus, "Could not delete podcast.", "error");
+            return;
+          }
+
+          setStatus(podcastStatus, "Deleted.", "success");
+          await loadPodcasts();
+        });
       };
 
       const init = async () => {
         setAuthUi(Boolean(getPassword()));
         setupHandlers();
-        await Promise.all([loadLinks(), loadPapers()]);
+        await Promise.all([loadLinks(), loadPapers(), loadPodcasts()]);
       };
 
       init();

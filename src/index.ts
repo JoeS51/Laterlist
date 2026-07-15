@@ -58,6 +58,11 @@ const CreatePaperSchema = z.object({
   category: z.array(z.string()).min(1)
 })
 
+const CreatePodcastSchema = z.object({
+  url: z.string().url(),
+  title: z.string()
+})
+
 const adminAuth = basicAuth({
   verifyUser: (username, password, c) => {
     return username === c.env.ADMIN_USER && password === c.env.ADMIN_PASSWORD
@@ -147,6 +152,23 @@ app.post('/paper', adminAuth, async (c) => {
   return c.text("created", 201)
 });
 
+app.post('/podcast', adminAuth, async (c) => {
+  const raw = await c.req.json()
+  const parsed = CreatePodcastSchema.safeParse(raw)
+  if (!parsed.success) {
+    return c.json({ error: parsed.error }, 400)
+  }
+
+  await c.env.DB.prepare(
+    `INSERT INTO podcasts (id, url, title, created_at)
+     VALUES (?, ?, ?, ?)`
+  )
+    .bind(crypto.randomUUID(), parsed.data.url, parsed.data.title, Date.now())
+    .run()
+
+  return c.text('created', 201)
+});
+
 app.delete('/link/:id', adminAuth, async (c) => {
   const id = c.req.param('id');
 
@@ -163,6 +185,17 @@ app.delete('/paper/:id', adminAuth, async (c) => {
 
   await c.env.DB
     .prepare(`DELETE FROM papers where id = ?`)
+    .bind(id)
+    .run()
+
+  return c.text('deleted', 200)
+});
+
+app.delete('/podcast/:id', adminAuth, async (c) => {
+  const id = c.req.param('id')
+
+  await c.env.DB
+    .prepare(`DELETE FROM podcasts WHERE id = ?`)
     .bind(id)
     .run()
 
@@ -205,6 +238,14 @@ app.get('/papers', async (c) => {
 
   const papers = Array.from(papersById.values())
   return c.json(papers)
+});
+
+app.get('/podcasts', async (c) => {
+  const result = await c.env.DB
+    .prepare(`SELECT id, url, title, created_at FROM podcasts ORDER BY created_at DESC`)
+    .all()
+
+  return c.json(result.results)
 });
 
 app.get('/papercount', async (c) => {
