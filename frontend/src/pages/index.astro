@@ -132,12 +132,6 @@ const apiBase = import.meta.env.PUBLIC_API_BASE_URL ?? "http://localhost:8787";
         text-decoration: underline;
       }
 
-      .url {
-        color: var(--muted);
-        font-size: 0.9rem;
-        line-height: 1.35;
-      }
-
       .meta {
         color: var(--muted);
         font-size: 0.85rem;
@@ -298,13 +292,11 @@ const apiBase = import.meta.env.PUBLIC_API_BASE_URL ?? "http://localhost:8787";
               ? new Date(item.created_at).toLocaleString()
               : "";
             const displayTitle = title || url;
-            const urlMarkup = title ? `<div class="url">${url}</div>` : "";
             return `
               <li>
                 <div class="title">
                   <a href="${url}" target="_blank" rel="noreferrer">${displayTitle}</a>
                 </div>
-                ${urlMarkup}
                 <div class="meta">${created}</div>
               </li>
             `;
@@ -336,7 +328,6 @@ const apiBase = import.meta.env.PUBLIC_API_BASE_URL ?? "http://localhost:8787";
                 <div class="title">
                   <a href="${item.url}" target="_blank" rel="noreferrer">${item.title}</a>
                 </div>
-                <div class="url">${item.url}</div>
                 <div class="meta">${created}</div>
                 ${categoryMarkup}
               </li>
@@ -362,7 +353,6 @@ const apiBase = import.meta.env.PUBLIC_API_BASE_URL ?? "http://localhost:8787";
                 <div class="title">
                   <a href="${item.url}" target="_blank" rel="noreferrer">${item.title}</a>
                 </div>
-                <div class="url">${item.url}</div>
                 <div class="meta">${created}</div>
               </li>
             `;
