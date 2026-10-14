@@ -46,6 +46,11 @@ const apiBase = import.meta.env.PUBLIC_API_BASE_URL ?? "http://localhost:8787";
         letter-spacing: -0.01em;
       }
 
+      :focus-visible {
+        outline: 1px solid var(--ink);
+        outline-offset: 2px;
+      }
+
       main {
         max-width: 960px;
         margin: 0 auto;
@@ -72,11 +77,9 @@ const apiBase = import.meta.env.PUBLIC_API_BASE_URL ?? "http://localhost:8787";
       .subtitle {
         color: var(--muted);
         font-size: 0.8rem;
-        max-width: none;
         padding-left: 8px;
         letter-spacing: 0.04em;
         text-transform: lowercase;
-        white-space: nowrap;
       }
 
       .tab-bar {
@@ -91,7 +94,7 @@ const apiBase = import.meta.env.PUBLIC_API_BASE_URL ?? "http://localhost:8787";
         border: 0;
         border-right: 1px solid var(--line-strong);
         border-bottom: 1px solid var(--line-strong);
-        background: transparent;
+        background: var(--cell);
         color: var(--muted);
         padding: 14px 12px;
         font: inherit;
@@ -109,42 +112,111 @@ const apiBase = import.meta.env.PUBLIC_API_BASE_URL ?? "http://localhost:8787";
 
       .tab-button:hover:not([aria-selected="true"]) {
         color: var(--ink);
-        background: rgba(255, 255, 255, 0.07);
+        background: rgba(30, 30, 30, 0.94);
+      }
+
+      .tab-button:focus-visible {
+        outline-offset: -4px;
+      }
+
+      .tab-button[aria-selected="true"]:focus-visible {
+        outline-color: #050505;
+      }
+
+      .search {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 0 16px;
+        border: 1px solid var(--line-strong);
+        border-top: 0;
+        background: var(--cell);
+      }
+
+      .search:focus-within {
+        background: rgba(22, 22, 22, 0.94);
+      }
+
+      .search-icon {
+        flex: none;
+        color: var(--muted);
+      }
+
+      .search input {
+        flex: 1;
+        min-width: 0;
+        padding: 14px 0;
+        border: 0;
+        background: transparent;
+        color: var(--ink);
+        font: inherit;
+        font-size: 0.9rem;
+        outline: none;
+      }
+
+      .search input::placeholder {
+        color: var(--muted);
+      }
+
+      .search kbd {
+        flex: none;
+        border: 1px solid var(--line-strong);
+        padding: 1px 6px;
+        font: inherit;
+        font-size: 0.7rem;
+        color: var(--muted);
+      }
+
+      .search:focus-within kbd {
+        display: none;
+      }
+
+      .category-filter {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+        margin-top: 16px;
+      }
+
+      .category-filter:empty {
+        display: none;
       }
 
       ul {
         list-style: none;
         display: grid;
-        grid-template-columns: 1fr;
+        grid-template-columns: repeat(auto-fill, minmax(min(100%, 380px), 1fr));
         padding: 0;
-        margin: 32px 0 0;
+        margin: 16px 0 0;
         border-top: 1px solid var(--line-strong);
         border-left: 1px solid var(--line-strong);
       }
 
-      #podcast-list li,
-      #paper-list li,
-      #link-list li {
+      .panel li {
         box-sizing: border-box;
         min-width: 0;
-        min-height: 128px;
         margin: 0;
-        padding: 20px;
+        padding: 16px 18px;
         border-right: 1px solid var(--line-strong);
         border-bottom: 1px solid var(--line-strong);
         background: var(--cell);
         transition: background 120ms ease;
       }
 
-      #podcast-list li:hover,
-      #paper-list li:hover,
-      #link-list li:hover {
+      .panel li.item:hover {
         background: rgba(22, 22, 22, 0.94);
+      }
+
+      .panel li.status {
+        grid-column: 1 / -1;
+        color: var(--muted);
+        font-size: 0.85rem;
       }
 
       .title {
         font-weight: 500;
         line-height: 1.45;
+        overflow-wrap: anywhere;
       }
 
       a {
@@ -160,13 +232,13 @@ const apiBase = import.meta.env.PUBLIC_API_BASE_URL ?? "http://localhost:8787";
 
       .meta {
         color: var(--muted);
-        font-size: 0.7rem;
-        margin-top: 12px;
-        letter-spacing: 0.04em;
+        font-size: 0.75rem;
+        margin-top: 8px;
+        letter-spacing: 0.02em;
       }
 
       .categories {
-        margin-top: 8px;
+        margin-top: 10px;
         display: flex;
         flex-wrap: wrap;
         gap: 6px;
@@ -175,11 +247,59 @@ const apiBase = import.meta.env.PUBLIC_API_BASE_URL ?? "http://localhost:8787";
       .category-chip {
         border: 1px solid var(--line-strong);
         padding: 3px 7px;
-        font-size: 0.68rem;
+        font: inherit;
+        font-size: 0.72rem;
         color: var(--muted);
         background: #050505;
         letter-spacing: 0.04em;
         text-transform: uppercase;
+        cursor: pointer;
+        transition: background 120ms ease, color 120ms ease;
+      }
+
+      .category-chip:hover {
+        color: var(--ink);
+      }
+
+      .category-chip[aria-pressed="true"] {
+        color: #050505;
+        background: var(--ink);
+        border-color: var(--ink);
+      }
+
+      .retry {
+        margin-left: 8px;
+        border: 1px solid var(--line-strong);
+        padding: 3px 8px;
+        background: transparent;
+        color: var(--ink);
+        font: inherit;
+        font-size: 0.75rem;
+        cursor: pointer;
+      }
+
+      .skeleton-bar {
+        height: 12px;
+        background: rgba(255, 255, 255, 0.08);
+        animation: pulse 1.2s ease-in-out infinite;
+      }
+
+      .skeleton-bar + .skeleton-bar {
+        margin-top: 12px;
+        height: 9px;
+        width: 40%;
+      }
+
+      @keyframes pulse {
+        50% {
+          opacity: 0.4;
+        }
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        .skeleton-bar {
+          animation: none;
+        }
       }
 
       .panel {
@@ -200,24 +320,6 @@ const apiBase = import.meta.env.PUBLIC_API_BASE_URL ?? "http://localhost:8787";
         text-align: right;
       }
 
-      footer a {
-        color: var(--ink);
-        text-decoration: none;
-        margin-right: 10px;
-      }
-
-      footer a:last-child {
-        margin-right: 0;
-      }
-
-      .footer-inner {
-        white-space: nowrap;
-      }
-
-      .footer-note {
-        color: var(--muted);
-      }
-
       footer a:hover {
         text-decoration: underline;
       }
@@ -228,18 +330,22 @@ const apiBase = import.meta.env.PUBLIC_API_BASE_URL ?? "http://localhost:8787";
         }
 
         .subtitle {
-          font-size: clamp(0.5rem, 2.4vw, 0.8rem);
+          padding-left: 0;
           letter-spacing: 0.01em;
         }
 
-        .tab-bar {
-          grid-template-columns: 1fr;
+        .tab-button {
+          padding: 12px 6px;
+          font-size: 0.72rem;
+          letter-spacing: 0.04em;
         }
 
-        #podcast-list li,
-        #paper-list li,
-        #link-list li {
-          min-height: 112px;
+        .tab-long {
+          display: none;
+        }
+
+        .search kbd {
+          display: none;
         }
       }
     </style>
@@ -254,170 +360,268 @@ const apiBase = import.meta.env.PUBLIC_API_BASE_URL ?? "http://localhost:8787";
       </header>
 
       <div class="tab-bar" role="tablist" aria-label="Reading list sections">
-        <button class="tab-button" id="tab-links" type="button" role="tab" aria-selected="true" aria-controls="panel-links">
-          Articles (0)
+        <button class="tab-button" id="tab-articles" type="button" role="tab" aria-selected="true" aria-controls="panel-articles">
+          Articles <span class="count"></span>
         </button>
-        <button class="tab-button" id="tab-papers" type="button" role="tab" aria-selected="false" aria-controls="panel-papers">
-          Research Papers (0)
+        <button class="tab-button" id="tab-papers" type="button" role="tab" aria-selected="false" aria-controls="panel-papers" tabindex="-1">
+          <span class="tab-long">Research </span>Papers <span class="count"></span>
         </button>
-        <button class="tab-button" id="tab-podcasts" type="button" role="tab" aria-selected="false" aria-controls="panel-podcasts">
-          Podcasts (0)
+        <button class="tab-button" id="tab-podcasts" type="button" role="tab" aria-selected="false" aria-controls="panel-podcasts" tabindex="-1">
+          Podcasts <span class="count"></span>
         </button>
       </div>
 
-      <section id="panel-links" class="panel is-active" role="tabpanel" aria-labelledby="tab-links">
-        <ul id="link-list">
-          <li>Loading...</li>
-        </ul>
+      <label class="search">
+        <svg class="search-icon" width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+          <circle cx="7" cy="7" r="5.25" stroke="currentColor" stroke-width="1.5" />
+          <path d="M11 11l3.5 3.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="square" />
+        </svg>
+        <input id="search" type="search" placeholder="Search titles and sites" autocomplete="off" aria-label="Search" />
+        <kbd>/</kbd>
+      </label>
+
+      <section id="panel-articles" class="panel is-active" role="tabpanel" aria-labelledby="tab-articles">
+        <ul id="articles-list"></ul>
       </section>
 
       <section id="panel-papers" class="panel" role="tabpanel" aria-labelledby="tab-papers">
-        <ul id="paper-list">
-          <li>Loading...</li>
-        </ul>
+        <div class="category-filter" id="category-filter" role="group" aria-label="Filter by category"></div>
+        <ul id="papers-list"></ul>
       </section>
 
       <section id="panel-podcasts" class="panel" role="tabpanel" aria-labelledby="tab-podcasts">
-        <ul id="podcast-list">
-          <li>Loading...</li>
-        </ul>
+        <ul id="podcasts-list"></ul>
       </section>
 
       <footer>
-        <div class="footer-inner">
-          <span class="footer-note">
-            my own articles are <a href="https://www.joesluis.com/blog" target="_blank" rel="noreferrer">here :)</a>
-          </span>
-        </div>
+        my own articles are <a href="https://www.joesluis.com/blog" target="_blank" rel="noreferrer">here :)</a>
       </footer>
     </main>
 
     <script type="module" define:vars={{ apiBase }}>
-      const linkList = document.querySelector("#link-list");
-      const paperList = document.querySelector("#paper-list");
-      const podcastList = document.querySelector("#podcast-list");
-      const linksTab = document.querySelector("#tab-links");
-      const papersTab = document.querySelector("#tab-papers");
-      const podcastsTab = document.querySelector("#tab-podcasts");
-      const tabs = { links: linksTab, papers: papersTab, podcasts: podcastsTab };
-      const panels = {
-        links: document.querySelector("#panel-links"),
-        papers: document.querySelector("#panel-papers"),
-        podcasts: document.querySelector("#panel-podcasts"),
+      const sections = {
+        articles: { endpoint: "/links", noun: "articles" },
+        papers: { endpoint: "/papers", noun: "research papers" },
+        podcasts: { endpoint: "/podcasts", noun: "podcasts" },
+      };
+      const tabNames = Object.keys(sections);
+
+      for (const [name, section] of Object.entries(sections)) {
+        section.tab = document.querySelector(`#tab-${name}`);
+        section.panel = document.querySelector(`#panel-${name}`);
+        section.list = document.querySelector(`#${name}-list`);
+        section.count = section.tab.querySelector(".count");
+        section.items = null;
+        section.error = false;
+      }
+
+      const searchInput = document.querySelector("#search");
+      const categoryFilter = document.querySelector("#category-filter");
+      let query = "";
+      let activeCategory = null;
+
+      const escapeHtml = (value) =>
+        String(value ?? "").replace(/[&<>"']/g, (ch) => ({
+          "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;",
+        })[ch]);
+
+      const hostOf = (url) => {
+        try {
+          return new URL(url).hostname.replace(/^www\./, "");
+        } catch {
+          return "";
+        }
       };
 
-      const setActiveTab = (tab) => {
-        Object.entries(tabs).forEach(([name, button]) => {
-          button.setAttribute("aria-selected", String(name === tab));
-          panels[name].classList.toggle("is-active", name === tab);
-        });
+      const formatDate = (timestamp) =>
+        timestamp
+          ? new Date(timestamp).toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" })
+          : "";
+
+      const normalize = (item) => {
+        const url = item.url ?? item.URL ?? "";
+        const safeUrl = /^https?:\/\//i.test(url) ? url : "#";
+        const host = hostOf(url);
+        const title = item.title || url;
+        const categories = Array.isArray(item.categories) ? item.categories : [];
+        return {
+          url: safeUrl,
+          title,
+          host,
+          date: formatDate(item.created_at),
+          categories,
+          haystack: [title, host, ...categories].join(" ").toLowerCase(),
+        };
       };
 
-      const renderLinks = (items) => {
-        linksTab.textContent = `Articles (${items.length})`;
-        if (!items.length) {
-          linkList.innerHTML = "<li>No links yet.</li>";
+      const skeletonMarkup = Array.from({ length: 4 }, () =>
+        `<li aria-hidden="true"><div class="skeleton-bar"></div><div class="skeleton-bar"></div></li>`
+      ).join("");
+
+      const itemMarkup = (item) => {
+        const meta = [item.host, item.date].filter(Boolean).map(escapeHtml).join(" · ");
+        const categories = item.categories.length
+          ? `<div class="categories">${item.categories
+              .map((category) => `<button type="button" class="category-chip" data-category="${escapeHtml(category)}" aria-pressed="${category === activeCategory}">${escapeHtml(category)}</button>`)
+              .join("")}</div>`
+          : "";
+        return `
+          <li class="item">
+            <div class="title">
+              <a href="${escapeHtml(item.url)}" target="_blank" rel="noreferrer">${escapeHtml(item.title)}</a>
+            </div>
+            <div class="meta">${meta}</div>
+            ${categories}
+          </li>
+        `;
+      };
+
+      const visibleItems = (name) => {
+        const { items } = sections[name];
+        if (!items) return [];
+        return items.filter((item) =>
+          (!query || item.haystack.includes(query)) &&
+          (name !== "papers" || !activeCategory || item.categories.includes(activeCategory))
+        );
+      };
+
+      const renderSection = (name) => {
+        const section = sections[name];
+
+        if (section.error) {
+          section.count.textContent = "";
+          section.list.innerHTML = `<li class="status">Couldn't load ${section.noun}.<button type="button" class="retry" data-retry="${name}">Retry</button></li>`;
           return;
         }
-        linkList.innerHTML = items
-          .map((item) => {
-            const url = item.url ?? item.URL ?? "";
-            const title = item.title ?? "";
-            const created = item.created_at
-              ? new Date(item.created_at).toLocaleString()
-              : "";
-            const displayTitle = title || url;
-            return `
-              <li>
-                <div class="title">
-                  <a href="${url}" target="_blank" rel="noreferrer">${displayTitle}</a>
-                </div>
-                <div class="meta">${created}</div>
-              </li>
-            `;
-          })
-          .join("");
-      };
-
-      const renderPapers = (items) => {
-        papersTab.textContent = `Research Papers (${items.length})`;
-        if (!items.length) {
-          paperList.innerHTML = "<li>No research papers yet.</li>";
+        if (!section.items) {
+          section.count.textContent = "";
+          section.list.innerHTML = skeletonMarkup;
           return;
         }
 
-        paperList.innerHTML = items
-          .map((item) => {
-            const created = item.created_at
-              ? new Date(item.created_at).toLocaleString()
-              : "";
-            const categories = Array.isArray(item.categories) ? item.categories : [];
-            const categoryMarkup = categories.length
-              ? `<div class="categories">${categories
-                  .map((category) => `<span class="category-chip">${category}</span>`)
-                  .join("")}</div>`
-              : "";
+        const visible = visibleItems(name);
+        section.count.textContent = `(${visible.length})`;
 
-            return `
-              <li>
-                <div class="title">
-                  <a href="${item.url}" target="_blank" rel="noreferrer">${item.title}</a>
-                </div>
-                <div class="meta">${created}</div>
-                ${categoryMarkup}
-              </li>
-            `;
-          })
-          .join("");
+        if (!section.items.length) {
+          section.list.innerHTML = `<li class="status">No ${section.noun} yet.</li>`;
+        } else if (!visible.length) {
+          section.list.innerHTML = `<li class="status">No ${section.noun} match your filters.</li>`;
+        } else {
+          section.list.innerHTML = visible.map(itemMarkup).join("");
+        }
       };
 
-      const renderPodcasts = (items) => {
-        podcastsTab.textContent = `Podcasts (${items.length})`;
-        if (!items.length) {
-          podcastList.innerHTML = "<li>No podcasts yet.</li>";
+      const renderCategoryFilter = () => {
+        const papers = sections.papers.items ?? [];
+        const counts = new Map();
+        for (const paper of papers) {
+          for (const category of paper.categories) {
+            counts.set(category, (counts.get(category) ?? 0) + 1);
+          }
+        }
+        if (!counts.size) {
+          categoryFilter.innerHTML = "";
           return;
         }
-
-        podcastList.innerHTML = items
-          .map((item) => {
-            const created = item.created_at
-              ? new Date(item.created_at).toLocaleString()
-              : "";
-            return `
-              <li>
-                <div class="title">
-                  <a href="${item.url}" target="_blank" rel="noreferrer">${item.title}</a>
-                </div>
-                <div class="meta">${created}</div>
-              </li>
-            `;
-          })
-          .join("");
+        const chip = (category, label) =>
+          `<button type="button" class="category-chip" data-category="${escapeHtml(category ?? "")}" aria-pressed="${category === activeCategory}">${escapeHtml(label)}</button>`;
+        categoryFilter.innerHTML = [
+          chip(null, "All"),
+          ...[...counts.keys()].sort().map((category) => chip(category, `${category} ${counts.get(category)}`)),
+        ].join("");
       };
 
-      const loadLinks = async () => {
-        const response = await fetch(`${apiBase}/links`);
-        const data = await response.json();
-        renderLinks(Array.isArray(data) ? data : []);
+      const renderAll = () => {
+        tabNames.forEach(renderSection);
+        renderCategoryFilter();
       };
 
-      const loadPapers = async () => {
-        const response = await fetch(`${apiBase}/papers`);
-        const data = await response.json();
-        renderPapers(Array.isArray(data) ? data : []);
+      const load = async (name) => {
+        const section = sections[name];
+        section.error = false;
+        section.items = null;
+        renderSection(name);
+        try {
+          const response = await fetch(`${apiBase}${section.endpoint}`);
+          if (!response.ok) throw new Error(`HTTP ${response.status}`);
+          const data = await response.json();
+          section.items = (Array.isArray(data) ? data : []).map(normalize);
+        } catch (err) {
+          console.error(`Failed to load ${name}`, err);
+          section.error = true;
+        }
+        renderSection(name);
+        if (name === "papers") renderCategoryFilter();
       };
 
-      const loadPodcasts = async () => {
-        const response = await fetch(`${apiBase}/podcasts`);
-        const data = await response.json();
-        renderPodcasts(Array.isArray(data) ? data : []);
+      const setActiveTab = (name, { focus = false, updateHash = true } = {}) => {
+        for (const [tabName, section] of Object.entries(sections)) {
+          const selected = tabName === name;
+          section.tab.setAttribute("aria-selected", String(selected));
+          section.tab.tabIndex = selected ? 0 : -1;
+          section.panel.classList.toggle("is-active", selected);
+        }
+        if (focus) sections[name].tab.focus();
+        if (updateHash) history.replaceState(null, "", `#${name}`);
       };
 
-      linksTab.addEventListener("click", () => setActiveTab("links"));
-      papersTab.addEventListener("click", () => setActiveTab("papers"));
-      podcastsTab.addEventListener("click", () => setActiveTab("podcasts"));
+      const tabFromHash = () => {
+        const name = location.hash.slice(1);
+        return sections[name] ? name : "articles";
+      };
 
-      await Promise.all([loadLinks(), loadPapers(), loadPodcasts()]);
+      for (const name of tabNames) {
+        sections[name].tab.addEventListener("click", () => setActiveTab(name));
+      }
+
+      document.querySelector(".tab-bar").addEventListener("keydown", (event) => {
+        const current = tabNames.findIndex((name) => sections[name].tab === document.activeElement);
+        if (current === -1) return;
+        const next = {
+          ArrowRight: (current + 1) % tabNames.length,
+          ArrowLeft: (current - 1 + tabNames.length) % tabNames.length,
+          Home: 0,
+          End: tabNames.length - 1,
+        }[event.key];
+        if (next === undefined) return;
+        event.preventDefault();
+        setActiveTab(tabNames[next], { focus: true });
+      });
+
+      window.addEventListener("hashchange", () => setActiveTab(tabFromHash(), { updateHash: false }));
+
+      searchInput.addEventListener("input", () => {
+        query = searchInput.value.trim().toLowerCase();
+        tabNames.forEach(renderSection);
+      });
+
+      document.addEventListener("keydown", (event) => {
+        if (event.key === "/" && document.activeElement !== searchInput && !event.target.closest("input, textarea")) {
+          event.preventDefault();
+          searchInput.focus();
+        } else if (event.key === "Escape" && document.activeElement === searchInput && searchInput.value) {
+          searchInput.value = "";
+          query = "";
+          tabNames.forEach(renderSection);
+        }
+      });
+
+      document.addEventListener("click", (event) => {
+        const chip = event.target.closest(".category-chip");
+        if (chip) {
+          const category = chip.dataset.category || null;
+          activeCategory = category === activeCategory ? null : category;
+          renderSection("papers");
+          renderCategoryFilter();
+          return;
+        }
+        const retry = event.target.closest("[data-retry]");
+        if (retry) load(retry.dataset.retry);
+      });
+
+      setActiveTab(tabFromHash(), { updateHash: false });
+      renderAll();
+      await Promise.all(tabNames.map(load));
     </script>
   </body>
 </html>
