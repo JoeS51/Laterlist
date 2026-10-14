@@ -1,0 +1,782 @@
+---
+const appName = "Joe's Reading List";
+const apiBase = import.meta.env.PUBLIC_API_BASE_URL ?? "http://localhost:8787";
+---
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="icon" href="/favicon.ico" />
+    <meta name="viewport" content="width=device-width" />
+    <meta name="generator" content={Astro.generator} />
+    <title>Stats · {appName}</title>
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-X3VLQ2E9FZ"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+
+      gtag('config', 'G-X3VLQ2E9FZ');
+    </script>
+    <style is:global>
+      @import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap");
+
+      :root {
+        color-scheme: dark;
+        --ink: #f5f5f5;
+        --muted: #949494;
+        --line: rgba(255, 255, 255, 0.07);
+        --line-strong: rgba(255, 255, 255, 0.28);
+        --cell: rgba(0, 0, 0, 0.84);
+        --surface: #050505;
+        --grid-size: 20px;
+        --paper-line: rgba(255, 255, 255, 0.05);
+        --baseline: rgba(255, 255, 255, 0.28);
+        --mono: ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+      }
+
+      body {
+        margin: 0;
+        min-height: 100vh;
+        background-color: var(--surface);
+        background-image:
+          linear-gradient(var(--line) 1px, transparent 1px),
+          linear-gradient(90deg, var(--line) 1px, transparent 1px);
+        background-size: var(--grid-size) var(--grid-size);
+        font-family: "Inter", system-ui, -apple-system, sans-serif;
+        color: var(--ink);
+        letter-spacing: -0.01em;
+      }
+
+      :focus-visible {
+        outline: 1px solid var(--ink);
+        outline-offset: 2px;
+      }
+
+      main {
+        max-width: 960px;
+        margin: 0 auto;
+        padding: 64px 32px 48px;
+      }
+
+      header {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        padding: 22px 24px;
+        border: 1px solid var(--line-strong);
+        background: var(--cell);
+      }
+
+      h1 {
+        margin: 0;
+        font-size: clamp(1.7rem, 4vw, 2.7rem);
+        font-weight: 600;
+        letter-spacing: -0.045em;
+      }
+
+      a {
+        color: var(--ink);
+        text-decoration: none;
+      }
+
+      a:hover {
+        text-decoration: underline;
+        text-decoration-thickness: 1px;
+        text-underline-offset: 4px;
+      }
+
+      .toolbar {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 12px;
+        margin-top: 32px;
+      }
+
+      .back {
+        font-size: 0.78rem;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        color: var(--muted);
+      }
+
+      .back:hover {
+        color: var(--ink);
+      }
+
+      .range {
+        display: flex;
+        border-top: 1px solid var(--line-strong);
+        border-left: 1px solid var(--line-strong);
+      }
+
+      .range button {
+        border: 0;
+        border-right: 1px solid var(--line-strong);
+        border-bottom: 1px solid var(--line-strong);
+        background: var(--cell);
+        color: var(--muted);
+        padding: 8px 14px;
+        font: inherit;
+        font-size: 0.72rem;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        cursor: pointer;
+      }
+
+      .range button:hover:not([aria-pressed="true"]) {
+        color: var(--ink);
+        background: rgba(30, 30, 30, 0.94);
+      }
+
+      .range button[aria-pressed="true"] {
+        color: var(--surface);
+        background: var(--ink);
+      }
+
+      .tiles {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        margin-top: 16px;
+        border-top: 1px solid var(--line-strong);
+        border-left: 1px solid var(--line-strong);
+      }
+
+      .tile {
+        padding: 16px 18px;
+        border-right: 1px solid var(--line-strong);
+        border-bottom: 1px solid var(--line-strong);
+        background: var(--cell);
+      }
+
+      .tile-label {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        color: var(--muted);
+        font-size: 0.72rem;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+      }
+
+      .tile-value {
+        margin-top: 8px;
+        font-size: 1.9rem;
+        font-weight: 600;
+        letter-spacing: -0.03em;
+      }
+
+      .tile-sub {
+        margin-top: 2px;
+        color: var(--muted);
+        font-size: 0.75rem;
+      }
+
+      .glyph {
+        display: block;
+        flex: none;
+      }
+
+      .chart-card {
+        margin-top: 16px;
+        padding: 18px 18px 12px;
+        border: 1px solid var(--line-strong);
+        background: var(--cell);
+      }
+
+      .chart-head {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: space-between;
+        align-items: baseline;
+        gap: 8px 16px;
+      }
+
+      .chart-title {
+        margin: 0;
+        font-size: 0.95rem;
+        font-weight: 500;
+      }
+
+      .legend {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 14px;
+        margin: 0;
+        padding: 0;
+        list-style: none;
+        color: var(--muted);
+        font-family: var(--mono);
+        font-size: 0.7rem;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+      }
+
+      .legend li {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+      }
+
+      .chart {
+        position: relative;
+        margin-top: 16px;
+      }
+
+      .chart svg {
+        display: block;
+        max-width: 100%;
+        overflow: visible;
+        -webkit-tap-highlight-color: transparent;
+      }
+
+      .chart svg:focus-visible {
+        outline-offset: 4px;
+      }
+
+      .chart text {
+        fill: var(--muted);
+        font-family: var(--mono);
+        font-size: 10px;
+        letter-spacing: 0.04em;
+      }
+
+      .chart .count {
+        fill: var(--ink);
+      }
+
+      .chart [data-index] {
+        cursor: pointer;
+      }
+
+      .chart-status {
+        display: grid;
+        place-items: center;
+        min-height: 200px;
+        color: var(--muted);
+        font-size: 0.85rem;
+      }
+
+      .retry {
+        margin-left: 8px;
+        border: 1px solid var(--line-strong);
+        padding: 3px 8px;
+        background: transparent;
+        color: var(--ink);
+        font: inherit;
+        font-size: 0.75rem;
+        cursor: pointer;
+      }
+
+      .tooltip {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: max-content;
+        max-width: min(280px, 100%);
+        box-sizing: border-box;
+        padding: 8px 10px;
+        border: 1px solid var(--line-strong);
+        background: var(--surface);
+        pointer-events: none;
+        font-family: var(--mono);
+        font-size: 0.72rem;
+        line-height: 1.45;
+      }
+
+      .tooltip[hidden] {
+        display: none;
+      }
+
+      .tooltip-title {
+        color: var(--ink);
+        overflow-wrap: anywhere;
+      }
+
+      .tooltip-meta {
+        margin-top: 4px;
+        color: var(--muted);
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+        font-size: 0.65rem;
+      }
+
+      details {
+        margin-top: 12px;
+        border-top: 1px solid var(--paper-line);
+        padding-top: 10px;
+        font-size: 0.8rem;
+      }
+
+      summary {
+        color: var(--muted);
+        cursor: pointer;
+      }
+
+      summary:hover {
+        color: var(--ink);
+      }
+
+      table {
+        width: 100%;
+        margin-top: 10px;
+        border-collapse: collapse;
+        font-variant-numeric: tabular-nums;
+      }
+
+      th,
+      td {
+        padding: 6px 8px;
+        border-bottom: 1px solid var(--paper-line);
+        text-align: right;
+      }
+
+      th:first-child,
+      td:first-child {
+        text-align: left;
+      }
+
+      th {
+        color: var(--muted);
+        font-weight: 500;
+      }
+
+      footer {
+        margin-top: 32px;
+        padding: 14px 16px;
+        border: 1px solid var(--line-strong);
+        background: var(--cell);
+        font-size: 0.75rem;
+        color: var(--muted);
+        text-align: right;
+      }
+
+      @media (max-width: 640px) {
+        main {
+          padding: 32px 16px;
+        }
+
+        .tiles {
+          grid-template-columns: 1fr;
+        }
+
+        .tile {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 12px;
+        }
+
+        .tile-value {
+          margin-top: 0;
+          font-size: 1.4rem;
+        }
+
+        .tile-sub {
+          display: none;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <header>
+        <h1>{appName}</h1>
+      </header>
+
+      <div class="toolbar">
+        <a class="back" href="/">&larr; Back to list</a>
+        <div class="range" role="group" aria-label="Time range">
+          <button type="button" data-months="6" aria-pressed="false">6M</button>
+          <button type="button" data-months="12" aria-pressed="false">12M</button>
+          <button type="button" data-months="all" aria-pressed="true">All</button>
+        </div>
+      </div>
+
+      <div class="tiles" id="tiles"></div>
+
+      <section class="chart-card">
+        <div class="chart-head">
+          <h2 class="chart-title">Added per month</h2>
+          <ul class="legend" id="legend"></ul>
+        </div>
+        <div class="chart" id="chart">
+          <div class="chart-status">Loading…</div>
+        </div>
+        <details>
+          <summary>Show table</summary>
+          <table id="table"></table>
+        </details>
+      </section>
+
+      <footer>
+        my own articles are <a href="https://www.joesluis.com/blog" target="_blank" rel="noreferrer">here :)</a>
+      </footer>
+    </main>
+
+    <script type="module" define:vars={{ apiBase }}>
+      const SVG_NS = "http://www.w3.org/2000/svg";
+      const series = [
+        { key: "articles", label: "Articles", singular: "Article", endpoint: "/links" },
+        { key: "papers", label: "Papers", singular: "Paper", endpoint: "/papers" },
+        { key: "podcasts", label: "Podcasts", singular: "Podcast", endpoint: "/podcasts" },
+      ];
+
+      const chartEl = document.querySelector("#chart");
+      const tilesEl = document.querySelector("#tiles");
+      const legendEl = document.querySelector("#legend");
+      const tableEl = document.querySelector("#table");
+      const rangeButtons = [...document.querySelectorAll(".range button")];
+
+      let itemsByMonth = null;
+      let firstMonth = null;
+      let range = "all";
+
+      const monthKey = (date) => date.getFullYear() * 12 + date.getMonth();
+      const keyToDate = (key) => new Date(Math.floor(key / 12), key % 12, 1);
+      const formatMonth = (key, options) => keyToDate(key).toLocaleDateString(undefined, options);
+      const currentMonth = monthKey(new Date());
+
+      const el = (tag, attrs = {}, text) => {
+        const node = document.createElement(tag);
+        for (const [name, value] of Object.entries(attrs)) node.setAttribute(name, value);
+        if (text !== undefined) node.textContent = text;
+        return node;
+      };
+
+      const svgEl = (tag, attrs = {}) => {
+        const node = document.createElementNS(SVG_NS, tag);
+        for (const [name, value] of Object.entries(attrs)) node.setAttribute(name, value);
+        return node;
+      };
+
+      const hostOf = (url) => {
+        try {
+          return new URL(url).hostname.replace(/^www\./, "");
+        } catch {
+          return "";
+        }
+      };
+
+      const glyph = (type, x, y, size) => {
+        const group = svgEl("g", { transform: `translate(${x} ${y})` });
+        if (type === 0) {
+          group.append(svgEl("rect", { width: size, height: size, fill: "var(--ink)" }));
+          return group;
+        }
+        group.append(
+          svgEl("rect", {
+            x: 0.75, y: 0.75, width: size - 1.5, height: size - 1.5,
+            fill: "none", stroke: "var(--ink)", "stroke-width": 1.5,
+          })
+        );
+        if (type === 2) {
+          const dot = Math.max(2, Math.round(size / 4));
+          group.append(svgEl("rect", { x: (size - dot) / 2, y: (size - dot) / 2, width: dot, height: dot, fill: "var(--ink)" }));
+        }
+        return group;
+      };
+
+      const glyphIcon = (type) => {
+        const icon = svgEl("svg", { class: "glyph", width: 10, height: 10, viewBox: "0 0 10 10", "aria-hidden": "true" });
+        icon.append(glyph(type, 0, 0, 10));
+        return icon;
+      };
+
+      const load = async () => {
+        chartEl.replaceChildren(el("div", { class: "chart-status" }, "Loading…"));
+        try {
+          const results = await Promise.all(
+            series.map(async ({ endpoint }) => {
+              const response = await fetch(`${apiBase}${endpoint}`);
+              if (!response.ok) throw new Error(`HTTP ${response.status}`);
+              const data = await response.json();
+              return Array.isArray(data) ? data : [];
+            })
+          );
+          itemsByMonth = new Map();
+          results.forEach((items, type) => {
+            for (const item of items) {
+              if (!item.created_at) continue;
+              const url = item.url ?? item.URL ?? "";
+              const month = monthKey(new Date(item.created_at));
+              if (!itemsByMonth.has(month)) itemsByMonth.set(month, []);
+              itemsByMonth.get(month).push({
+                type,
+                url: /^https?:\/\//i.test(url) ? url : null,
+                title: item.title || url,
+                host: hostOf(url),
+                created: item.created_at,
+              });
+            }
+          });
+          for (const items of itemsByMonth.values()) {
+            items.sort((a, b) => a.type - b.type || a.created - b.created);
+          }
+          firstMonth = itemsByMonth.size ? Math.min(...itemsByMonth.keys()) : currentMonth;
+          render();
+        } catch (err) {
+          console.error("Failed to load stats", err);
+          const status = el("div", { class: "chart-status" });
+          const message = el("span", {}, "Couldn't load stats.");
+          const retry = el("button", { type: "button", class: "retry" }, "Retry");
+          retry.addEventListener("click", load);
+          message.append(retry);
+          status.append(message);
+          chartEl.replaceChildren(status);
+        }
+      };
+
+      const monthsInRange = () => {
+        const start = range === "all" ? firstMonth : currentMonth - Number(range) + 1;
+        const months = [];
+        for (let month = Math.min(start, currentMonth); month <= currentMonth; month++) {
+          const items = itemsByMonth.get(month) ?? [];
+          months.push({ month, items, counts: series.map((_, type) => items.filter((item) => item.type === type).length) });
+        }
+        return months;
+      };
+
+      const render = () => {
+        if (!itemsByMonth) return;
+        const months = monthsInRange();
+        renderTiles(months);
+        renderLegend();
+        renderTable(months);
+        renderChart(months);
+      };
+
+      const renderTiles = (months) => {
+        const thisMonth = months[months.length - 1].counts;
+        tilesEl.replaceChildren(
+          ...series.map((s, type) => {
+            const total = months.reduce((sum, { counts }) => sum + counts[type], 0);
+            const tile = el("div", { class: "tile" });
+            const label = el("div", { class: "tile-label" });
+            label.append(glyphIcon(type), document.createTextNode(s.label));
+            tile.append(
+              label,
+              el("div", { class: "tile-value" }, total.toLocaleString()),
+              el("div", { class: "tile-sub" }, `${thisMonth[type]} this month`)
+            );
+            return tile;
+          })
+        );
+      };
+
+      const renderLegend = () => {
+        legendEl.replaceChildren(
+          ...series.map((s, type) => {
+            const item = el("li");
+            item.append(glyphIcon(type), document.createTextNode(s.label));
+            return item;
+          })
+        );
+      };
+
+      const renderTable = (months) => {
+        const head = el("tr");
+        head.append(el("th", { scope: "col" }, "Month"), ...series.map((s) => el("th", { scope: "col" }, s.label)));
+        const rows = [...months].reverse().map(({ month, counts }) => {
+          const row = el("tr");
+          row.append(
+            el("td", {}, formatMonth(month, { month: "short", year: "numeric" })),
+            ...counts.map((count) => el("td", {}, String(count)))
+          );
+          return row;
+        });
+        tableEl.replaceChildren(el("thead"), el("tbody"));
+        tableEl.tHead.append(head);
+        tableEl.tBodies[0].append(...rows);
+      };
+
+      const layoutFor = (width, months) => {
+        const maxCount = Math.max(1, ...months.map(({ items }) => items.length));
+        for (const pitch of [20, 10]) {
+          const cellsPerMonth = Math.floor(width / pitch / months.length);
+          if (cellsPerMonth >= 2 || pitch === 10) {
+            const usable = Math.max(1, cellsPerMonth - (cellsPerMonth >= 2 ? 1 : 0));
+            const targetRows = pitch === 20 ? 12 : 18;
+            const perRow = Math.min(usable, Math.max(1, Math.ceil(maxCount / targetRows)));
+            const rows = Math.max(6, Math.ceil(maxCount / perRow) + 1);
+            return { pitch, cellsPerMonth: Math.max(1, cellsPerMonth), perRow, rows };
+          }
+        }
+      };
+
+      const renderChart = (months) => {
+        const width = chartEl.clientWidth;
+        const { pitch, cellsPerMonth, perRow, rows } = layoutFor(width, months);
+        const inset = pitch === 20 ? 3 : 1;
+        const size = pitch - inset * 2;
+        const columns = Math.floor(width / pitch);
+        const gridWidth = columns * pitch;
+        const offsetX = Math.floor((columns - cellsPerMonth * months.length) / 2) * pitch;
+        const plotHeight = rows * pitch;
+        const labelHeight = 32;
+        const height = plotHeight + labelHeight;
+
+        const svg = svgEl("svg", {
+          viewBox: `0 0 ${gridWidth} ${height}`,
+          width: gridWidth,
+          height,
+          role: "img",
+          tabindex: "0",
+          "aria-label": `Items added per month, ${formatMonth(months[0].month, { month: "short", year: "numeric" })} to ${formatMonth(months[months.length - 1].month, { month: "short", year: "numeric" })}, one square per item. Use left and right arrow keys to read each item and Enter to open it.`,
+        });
+
+        for (let x = 0; x <= gridWidth; x += pitch) {
+          svg.append(svgEl("line", { x1: x, x2: x, y1: 0, y2: plotHeight, stroke: "var(--paper-line)", "shape-rendering": "crispEdges" }));
+        }
+        for (let y = 0; y < plotHeight; y += pitch) {
+          svg.append(svgEl("line", { x1: 0, x2: gridWidth, y1: y, y2: y, stroke: "var(--paper-line)", "shape-rendering": "crispEdges" }));
+        }
+        svg.append(svgEl("line", { x1: 0, x2: gridWidth, y1: plotHeight, y2: plotHeight, stroke: "var(--baseline)", "shape-rendering": "crispEdges" }));
+
+        const placed = [];
+        const labelEvery = Math.ceil(30 / (cellsPerMonth * pitch));
+
+        months.forEach(({ month, items }, monthIndex) => {
+          const columnX = offsetX + (monthIndex * cellsPerMonth + Math.floor((cellsPerMonth - perRow) / 2)) * pitch;
+          const centerX = columnX + (perRow * pitch) / 2;
+
+          items.forEach((item, i) => {
+            const cellX = columnX + (i % perRow) * pitch;
+            const cellY = plotHeight - (Math.floor(i / perRow) + 1) * pitch;
+            const cell = svgEl("g", { "data-index": placed.length });
+            cell.append(svgEl("rect", { x: cellX, y: cellY, width: pitch, height: pitch, fill: "transparent" }));
+            cell.append(glyph(item.type, cellX + inset, cellY + inset, size));
+            svg.append(cell);
+            placed.push({ item, cellX, cellY });
+          });
+
+          if (items.length) {
+            const stackTop = plotHeight - Math.ceil(items.length / perRow) * pitch;
+            const count = svgEl("text", { class: "count", x: centerX, y: stackTop - 6, "text-anchor": "middle" });
+            count.textContent = String(items.length);
+            svg.append(count);
+          }
+
+          const isLast = monthIndex === months.length - 1;
+          if ((months.length - 1 - monthIndex) % labelEvery === 0 || isLast) {
+            const label = svgEl("text", { x: centerX, y: plotHeight + 14, "text-anchor": "middle" });
+            label.textContent = formatMonth(month, { month: "short" }).toUpperCase();
+            svg.append(label);
+          }
+          if (monthIndex === 0 || month % 12 === 0) {
+            const year = svgEl("text", { x: centerX, y: plotHeight + 27, "text-anchor": "middle" });
+            year.textContent = String(Math.floor(month / 12));
+            svg.append(year);
+          }
+        });
+
+        const highlight = svgEl("rect", {
+          width: pitch - 1, height: pitch - 1, fill: "none", stroke: "var(--ink)",
+          "stroke-width": 1, "shape-rendering": "crispEdges", visibility: "hidden", "pointer-events": "none",
+        });
+        svg.append(highlight);
+
+        const tooltip = el("div", { class: "tooltip", hidden: "" });
+        let activeIndex = null;
+        let lastPointerType = "mouse";
+
+        const show = (index) => {
+          activeIndex = index;
+          const { item, cellX, cellY } = placed[index];
+          highlight.setAttribute("x", cellX + 0.5);
+          highlight.setAttribute("y", cellY + 0.5);
+          highlight.setAttribute("visibility", "visible");
+
+          const date = new Date(item.created).toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" });
+          const meta = [series[item.type].singular, item.host, date].filter(Boolean).join(" · ");
+          tooltip.replaceChildren(el("div", { class: "tooltip-title" }, item.title), el("div", { class: "tooltip-meta" }, meta));
+          tooltip.hidden = false;
+
+          const scale = svg.getBoundingClientRect().width / gridWidth;
+          const tipWidth = tooltip.offsetWidth;
+          const tipHeight = tooltip.offsetHeight;
+          const left = Math.min(Math.max(0, (cellX + pitch / 2) * scale - tipWidth / 2), chartEl.clientWidth - tipWidth);
+          const above = cellY * scale - tipHeight - 8;
+          tooltip.style.left = `${left}px`;
+          tooltip.style.top = `${above >= 0 ? above : (cellY + pitch) * scale + 8}px`;
+        };
+
+        const hide = () => {
+          activeIndex = null;
+          highlight.setAttribute("visibility", "hidden");
+          tooltip.hidden = true;
+        };
+
+        const open = (index) => {
+          const { url } = placed[index].item;
+          if (url) window.open(url, "_blank", "noopener,noreferrer");
+        };
+
+        const indexFromEvent = (event) => {
+          const cell = event.target.closest("[data-index]");
+          return cell ? Number(cell.dataset.index) : null;
+        };
+
+        svg.addEventListener("pointermove", (event) => {
+          if (event.pointerType !== "mouse") return;
+          const index = indexFromEvent(event);
+          index === null ? hide() : show(index);
+        });
+        svg.addEventListener("pointerdown", (event) => {
+          lastPointerType = event.pointerType;
+        });
+        svg.addEventListener("pointerleave", (event) => {
+          if (event.pointerType === "mouse") hide();
+        });
+        svg.addEventListener("click", (event) => {
+          const index = indexFromEvent(event);
+          if (index === null) return hide();
+          if (lastPointerType !== "mouse" && activeIndex !== index) return show(index);
+          open(index);
+        });
+        svg.addEventListener("focus", () => placed.length && show(activeIndex ?? placed.length - 1));
+        svg.addEventListener("blur", hide);
+        svg.addEventListener("keydown", (event) => {
+          if (!placed.length) return;
+          if (event.key === "Enter" && activeIndex !== null) {
+            open(activeIndex);
+            return;
+          }
+          const next = {
+            ArrowLeft: (activeIndex ?? placed.length) - 1,
+            ArrowRight: (activeIndex ?? -1) + 1,
+            Home: 0,
+            End: placed.length - 1,
+          }[event.key];
+          if (next === undefined) return;
+          event.preventDefault();
+          show(Math.min(placed.length - 1, Math.max(0, next)));
+        });
+
+        chartEl.replaceChildren(svg, tooltip);
+      };
+
+      rangeButtons.forEach((button) => {
+        button.addEventListener("click", () => {
+          range = button.dataset.months;
+          rangeButtons.forEach((b) => b.setAttribute("aria-pressed", String(b === button)));
+          render();
+        });
+      });
+
+      let lastWidth = 0;
+      let resizeFrame = null;
+      new ResizeObserver(() => {
+        if (chartEl.clientWidth === lastWidth) return;
+        lastWidth = chartEl.clientWidth;
+        cancelAnimationFrame(resizeFrame);
+        resizeFrame = requestAnimationFrame(render);
+      }).observe(chartEl);
+
+      await load();
+    </script>
+  </body>
+</html>

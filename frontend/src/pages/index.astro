@@ -74,14 +74,6 @@ const apiBase = import.meta.env.PUBLIC_API_BASE_URL ?? "http://localhost:8787";
         letter-spacing: -0.045em;
       }
 
-      .subtitle {
-        color: var(--muted);
-        font-size: 0.8rem;
-        padding-left: 8px;
-        letter-spacing: 0.04em;
-        text-transform: lowercase;
-      }
-
       .tab-bar {
         display: grid;
         grid-template-columns: repeat(3, 1fr);
@@ -329,11 +321,6 @@ const apiBase = import.meta.env.PUBLIC_API_BASE_URL ?? "http://localhost:8787";
           padding: 32px 16px;
         }
 
-        .subtitle {
-          padding-left: 0;
-          letter-spacing: 0.01em;
-        }
-
         .tab-button {
           padding: 12px 6px;
           font-size: 0.72rem;
@@ -354,9 +341,6 @@ const apiBase = import.meta.env.PUBLIC_API_BASE_URL ?? "http://localhost:8787";
     <main>
       <header>
         <h1>{appName}</h1>
-        <div class="subtitle">
-          not just a reading list anymore, but you get the idea
-        </div>
       </header>
 
       <div class="tab-bar" role="tablist" aria-label="Reading list sections">
@@ -394,7 +378,7 @@ const apiBase = import.meta.env.PUBLIC_API_BASE_URL ?? "http://localhost:8787";
       </section>
 
       <footer>
-        my own articles are <a href="https://www.joesluis.com/blog" target="_blank" rel="noreferrer">here :)</a>
+        <a href="/stats">monthly stats</a> · my own articles are <a href="https://www.joesluis.com/blog" target="_blank" rel="noreferrer">here :)</a>
       </footer>
     </main>
 
